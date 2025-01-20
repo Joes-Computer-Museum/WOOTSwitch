@@ -18,9 +18,12 @@ via the button on the front or <kbd>Control</kbd> / <kbd>Option</kbd> /
 <kbd>⌘</kbd> / <kbd>Shift</kbd> in sequence, followed by <kbd>1</kbd> -
 <kbd>4</kbd> to choose a port.
 
-The firmware is still under active development and many bugs remain. Other
-types of ADB devices are not supported yet. No features based on the Pico W
-wireless chip have not been implemented at this point.
+The firmware is still under active development and many bugs remain. Known
+issues include:
+
+- Mouse input can be a bit "floaty" especially during extreme movements.
+- No other ADB devices besides keyboards/mice are supported yet.
+- No features based on the Pico W wireless chip have not been implemented.
 
 This section will continue to be updated as progress is (hopefully) made.
 
