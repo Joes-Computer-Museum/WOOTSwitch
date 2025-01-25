@@ -33,6 +33,9 @@
 #include "led.h"
 #include "util.h"
 
+// RTOS delay ticks between device polling; inexact due to callback processing
+#define HOST_POLL_RATE    10
+
 #define DEVICE_MAX        14
 #define DMA_MAX_BITS      131
 
@@ -867,7 +870,7 @@ void host_task(__unused void *parameters)
 	idle_poll = true;
 	task_handle = xTaskGetCurrentTaskHandle();
 	while (true) {
-		ulTaskNotifyTake(pdFALSE, 5);
+		ulTaskNotifyTake(pdFALSE, HOST_POLL_RATE);
 		host_poll();
 	}
 }
