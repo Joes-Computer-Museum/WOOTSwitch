@@ -68,45 +68,6 @@ selection is correct, then hold down the BOOTSEL button while you plug in
 to your computer via USB. Copy the `.uf2` onto the new mass storage device.
 Reboot.
 
-Debugging
----------
-
-You will want to invoke `cmake` with `-DCMAKE_BUILD_TYPE=Debug`.
-
-[The official debugger](https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html)
-is dirt cheap and works reasonably well if you plan to develop on the firmware.
-It can be used as follows to upload without needing to fuss with the BOOTSEL
-button. Be in the `dialout` group to avoid needing `sudo` all over the place.
-OpenOCD can be started as follows.
-
-```
-openocd -c "set USE_CORE 0" -f interface/cmsis-dap.cfg -f target/rp2040.cfg \
-    -c "adapter speed 5000" -c "rp2040.core0 configure -rtos FreeRTOS"
-```
-
-See <https://github.com/raspberrypi/pico-sdk/issues/1622> for a discussion
-about `USE_CORE 0` above. The above is fine for now with the current state of
-development, which runs only on a single core anyway.
-
-In another terminal, run `gdb-multiarch hootswitch.elf`. Connect to the device
-with `target remote localhost:3333` (or automate this step via `~/.gdbinit`).
-See [the documentation](https://openocd.org/doc/html/General-Commands.html) for
-specifics; the following commands are likely useful (with the caveat that I am
-_most definitely_ not an authority on `gdb`):
-
-* `load` will update programming with the current ELF.
-* `monitor reset init` will restart and halt for instructions.
-* `print X` prints information about something, including variables.
-* `br X` adds a breakpoint at X, `del` removes one or more.
-* `continue` will proceed, stopping at breakpoints; Ctrl-C halts.
-* `finish` completes a function.
-* `bt` prints a backtrace, `bt f` prints a backtrace with symbols.
-* `up` and `down` moves around the frames of a call.
-* `i r` prints registers.
-* `p X` prints variable X.
-* `p/x *0x0` prints in hex from the address, useful for peripheral registers.
-* `i threads` prints information relevant to FreeRTOS thread execution.
-
 Licenses
 --------
 
