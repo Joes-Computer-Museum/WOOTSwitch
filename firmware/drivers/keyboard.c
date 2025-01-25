@@ -33,9 +33,6 @@
 // sets the most number of passthru keyboards permitted
 #define MAX_KEYBOARDS         4
 
-// standard keyboard handler
-#define DEFAULT_HANDLER       2
-
 // how many Talk 0s from a keyboard are queued for sending to computers?
 #define KEYBOARD_QUEUE_DEPTH  8
 
@@ -210,7 +207,7 @@ static void set_comp_reg2(uint8_t comp, uint8_t drv_idx, uint16_t reg2)
 static void drvr_reset(uint8_t comp, uint32_t ref)
 {
 	// reset the keyboard memory for the affected virtual keyboard
-	keyboards[ref].mem[comp].dhi = DEFAULT_HANDLER;
+	keyboards[ref].mem[comp].dhi = 0x01;
 	xQueueReset(keyboards[ref].mem[comp].queue);
 	keyboards[ref].mem[comp].reg2 = DEFAULT_REGISTER_2;
 	// (re)assign the queue, not done until the first reset for a system
@@ -257,7 +254,7 @@ static void drvr_get_handle(uint8_t comp, uint32_t ref, uint8_t *hndl)
 
 static void drvr_set_handle(uint8_t comp, uint32_t ref, uint8_t hndl)
 {
-	if (hndl != 2 || hndl != 3) return;
+	if (! (hndl >= 0x01 && hndl <= 0x03)) return;
 	keyboards[ref].mem[comp].dhi = hndl;
 }
 
@@ -282,18 +279,28 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 {
 	if (keyboard_count >= MAX_KEYBOARDS) return false;
 	if (info->address_def != 0x02) return false;
-	if (! (info->dhid_cur == DEFAULT_HANDLER || info->dhid_cur == 0x03)) return false;
+	if (! (info->dhid_cur >= 0x01 && info->dhid_cur <= 0x03)) return false;
 
 	keyboard *kbd = &keyboards[keyboard_count];
 	kbd->hdev = info->hdev;
 	if (info->dhid_cur == 0x03) {
 		kbd->extended = true;
-	} else {
+	} else if (info->dhid_cur == 0x02) {
 		kbd->extended = handle_change(0x03);
+	} else {
+		kbd->extended = false;
 	}
 
 	for (uint8_t c = 0; c < COMPUTER_COUNT; c++) {
-		kbd->mem[c].dhi = DEFAULT_HANDLER;
+		if (info->dhid_cur == 0x01) {
+			kbd->mem[c].dhi = 0x01;
+		} else {
+			if (kbd->extended) {
+				kbd->mem[c].dhi = 0x03;
+			} else {
+				kbd->mem[c].dhi = 0x02;
+			}
+		}
 		kbd->mem[c].queue = xQueueCreate(KEYBOARD_QUEUE_DEPTH,
 				sizeof(keyboard_message));
 		assert(kbd->mem[c].queue != NULL);
