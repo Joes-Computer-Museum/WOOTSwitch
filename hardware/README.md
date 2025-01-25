@@ -1,6 +1,12 @@
 Hootswitch Hardware
 ===================
 
+_IMPORTANT NOTE_: the DC power jack does not work on any board revision due to
+a design error. If you make PCBs based on this design only USB power will
+function. You can work around this problem by bodging a wire from the negative
+terminal of the DC jack to a nearby ground connection but that isn't great for
+such an important connection.
+
 This folder has the hardware design being used to develop the firmware. Known
 issues with it include:
 
