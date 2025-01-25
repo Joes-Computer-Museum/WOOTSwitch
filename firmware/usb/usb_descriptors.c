@@ -35,7 +35,7 @@
 #endif
 
 #ifndef USBD_PID
-#define USBD_PID (0x000F) // test PID for now, request pending for 0x6804
+#define USBD_PID (0x6804) // hootswitch
 #endif
 
 #ifndef USBD_MANUFACTURER

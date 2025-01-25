@@ -19,7 +19,7 @@ const baud = 115200;
 const movementDivisor = 8;
 const computers = 4;
 const vid = 0x1209; // pid.codes
-const pid = 0x000F; // test PID for now, seeking approval for 0x6804
+const pid = 0x6804; // hootswitch PID from pid.codes
 
 /*
  * Simplistic implementation of a mouse/keyboard capture system for sending
