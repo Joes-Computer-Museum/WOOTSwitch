@@ -279,27 +279,17 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 {
 	if (keyboard_count >= MAX_KEYBOARDS) return false;
 	if (info->address_def != 0x02) return false;
-	if (! (info->dhid_cur >= 0x01 && info->dhid_cur <= 0x03)) return false;
+//	if (! (info->dhid_cur >= 0x01 && info->dhid_cur <= 0x03)) return false;
 
 	keyboard *kbd = &keyboards[keyboard_count];
 	kbd->hdev = info->hdev;
-	if (info->dhid_cur == 0x03) {
-		kbd->extended = true;
-	} else if (info->dhid_cur == 0x02) {
-		kbd->extended = handle_change(0x03);
-	} else {
-		kbd->extended = false;
-	}
+	kbd->extended = handle_change(0x03);
 
 	for (uint8_t c = 0; c < COMPUTER_COUNT; c++) {
-		if (info->dhid_cur == 0x01) {
-			kbd->mem[c].dhi = 0x01;
+		if (kbd->extended) {
+			kbd->mem[c].dhi = 0x03;
 		} else {
-			if (kbd->extended) {
-				kbd->mem[c].dhi = 0x03;
-			} else {
-				kbd->mem[c].dhi = 0x02;
-			}
+			kbd->mem[c].dhi = 0x02;
 		}
 		kbd->mem[c].queue = xQueueCreate(KEYBOARD_QUEUE_DEPTH,
 				sizeof(keyboard_message));

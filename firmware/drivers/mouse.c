@@ -126,7 +126,7 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 {
 	if (mouse_count >= MAX_MICE) return false;
 	if (info->address_def != 0x03) return false;
-	if (! (info->dhid_cur == DEFAULT_HANDLER || info->dhid_cur == 0x02)) return false;
+//	if (! (info->dhid_cur == DEFAULT_HANDLER || info->dhid_cur == 0x02)) return false;
 
 	mouse *mse = &mice[mouse_count];
 	mse->hdev = info->hdev;
