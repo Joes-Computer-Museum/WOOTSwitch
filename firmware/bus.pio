@@ -46,7 +46,7 @@
 ; not stop the PIO state machine after the first IRQ fire. You need to provide
 ; an initial TX FIFO value for the length of the low pulse. For regular
 ; attention a value of 15 is appropriate ((15+1)*50=800). To make this a reset
-; pulse use 59 instead.
+; pulse use 59 or greater instead.
 ;
 ; Starting at (offset + 2) gets attention/sync for commands and should be the
 ; normal way to invoke this in almost all cases.

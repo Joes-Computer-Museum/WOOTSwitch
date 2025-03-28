@@ -41,7 +41,7 @@
 
 // see the PIO host definitions for what these values mean
 #define PIO_CMD_OFFSET    2
-#define PIO_RESET_VAL     59
+#define PIO_RESET_VAL     62 // 3.15ms, a bit longer than spec 3ms (59)
 #define PIO_CMD_VAL       15
 #define PIO_RX_TIME_VAL   110
 
