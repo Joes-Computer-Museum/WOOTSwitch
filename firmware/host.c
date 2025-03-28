@@ -122,6 +122,7 @@ host_err reg3_sync_talk(uint8_t addr, uint8_t *hi, uint8_t *lo)
 	uint8_t datalen = 2;
 	uint8_t cmd = (addr << 4) | (uint8_t) COMMAND_TALK_3;
 	host_err err = host_sync_cmd(0xFF, cmd, data, &datalen);
+	busy_wait_ms(1);
 	if (err) return err;
 	if (datalen != 2) return HOSTERR_BAD_RESPONSE;
 	*hi = data[0];
@@ -138,6 +139,7 @@ host_err reg3_sync_listen(uint8_t addr, uint8_t hi, uint8_t lo)
 	data[0] = hi;
 	data[1] = lo;
 	host_err err = host_sync_cmd(0xFF, cmd, data, &datalen);
+	busy_wait_ms(1);
 	return err;
 }
 
@@ -501,9 +503,6 @@ static host_err host_reset_addresses(void)
 					return HOSTERR_BAD_DEVICE;
 				}
 
-				// we are faster than the ROM routine, give device extra time
-				busy_wait_ms(2);
-
 				// move back to high address
 				// still use 0xFE to match ROM behavior
 				if (err = reg3_sync_listen(base_addr, cur_addr, 0xFE)) {
@@ -517,9 +516,6 @@ static host_err host_reset_addresses(void)
 					dbg_err("    $%X failed move err:%d", base_addr, err);
 					return HOSTERR_BAD_DEVICE;
 				}
-
-				// as before, let the device do setup before resuming
-				busy_wait_ms(2);
 			}
 
 			// now treat the device as permanent and add to our records
