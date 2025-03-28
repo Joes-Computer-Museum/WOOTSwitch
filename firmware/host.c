@@ -41,13 +41,13 @@
 
 // see the PIO host definitions for what these values mean
 #define PIO_CMD_OFFSET    2
-#define PIO_RESET_VAL     62 // 3.15ms, a bit longer than spec 3ms (59)
+#define PIO_RESET_VAL     79 // 4ms, longer than spec 3ms (59)
 #define PIO_CMD_VAL       15
 #define PIO_RX_TIME_VAL   110
 
 // a few more common timer-based timeouts
 #define COMMAND_TIMEOUT   (800 + 70 + 800 + 65 + 300 + 300)
-#define RESET_TIMEOUT     (2200 + COMMAND_TIMEOUT)
+#define RESET_TIMEOUT     (3200 + COMMAND_TIMEOUT)
 #define RX_MAX_TIMEOUT    (300 + 66 * 130)
 #define TYP_CMD_GAP       1000
 
