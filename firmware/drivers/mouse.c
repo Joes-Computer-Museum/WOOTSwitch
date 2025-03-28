@@ -139,7 +139,7 @@ static dev_driver mouse_driver = {
  * ----------------------------------------------------------------------------
  */
 
-static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8_t))
+static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8_t, bool))
 {
 	if (mouse_count >= MAX_MICE) return false;
 	if (info->address_def != DEFAULT_ADDRESS) return false;
@@ -150,7 +150,7 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 	assert(mse->sem != NULL);
 
 	// try to change the device to the extended mouse protocol
-	if (handle_change(0x04)) {
+	if (handle_change(0x04, true)) {
 		// read and store register 1
 		uint8_t dev_reg1[8];
 		uint8_t dev_reg1_len;
@@ -162,14 +162,14 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 		} else {
 			// not valid extended response, reset to original handler
 			dbg_err("mse: dev %d dhid 4 bad reg1", info->hdev);
-			handle_change(info->dhid_def);
+			handle_change(info->dhid_def, true);
 		}
 	}
 
 	// make sure device is in a valid mode
 	if (! (info->dhid_cur == 0x01 || info->dhid_cur == 0x04)) {
 		// already tried extended, move to basic protocol
-		if (! handle_change(0x01)) {
+		if (! handle_change(0x01, true)) {
 			// failed to accept, must not be a mouse?
 			dbg_err("mse: dev %d reject dhid 1, dropped", info->hdev);
 			return false;

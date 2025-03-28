@@ -518,7 +518,7 @@ static host_err host_reset_addresses(void)
 
 // callback provided to interviewers to try and change a device's DHID
 static uint8_t handle_change_devid;
-static bool host_handle_change(uint8_t dhid)
+static bool host_handle_change(uint8_t dhid, bool srq)
 {
 	// block special DHID values
 	if (dhid == 0x00 || dhid >= 0xFD) {
@@ -547,16 +547,22 @@ static bool host_handle_change(uint8_t dhid)
 	}
 
 	// try to reassign to the handler requested
-	reg3_hi = (reg3_hi & 0xF0) | (addr & 0xF);
+	// Note: IM says the low 4 bits of the high byte should be the device
+	// address, but some devices don't seem to return their address here; set
+	// to address to be on the safe side
+	reg3_hi = (reg3_hi & 0xD0) | (addr & 0x0F);
+	if (srq) {
+		reg3_hi |= 0x20;
+	}
 	if (err = reg3_sync_listen(addr, reg3_hi, dhid)) {
-		dbg_err("    id %d err L3!", handle_change_devid);
+		dbg_err("    id %d err L3! err:%d", handle_change_devid, err);
 		device->fault = true;
 		return false;
 	}
 
 	// was it accepted?
 	if (err = reg3_sync_talk(addr, &reg3_hi, &device_dhid)) {
-		dbg_err("    id %d err T3!", handle_change_devid);
+		dbg_err("    id %d err T3! err:%d", handle_change_devid, err);
 		device->fault = true;
 		return false;
 	}
@@ -567,7 +573,7 @@ static bool host_handle_change(uint8_t dhid)
 		return false;
 	}
 
-	dbg("    id %d dhid:%d", handle_change_devid, device_dhid);
+	dbg("    id %d dhid now %d", handle_change_devid, device_dhid);
 	return device_dhid == dhid;
 }
 

@@ -72,7 +72,7 @@
  *   handler to give a yes/no answer to whether it should be assigned this
  *   device. Simpler handlers can just check the "device handler ID" (DHI)
  *   value in the struct to answer the question. More compliated handlers may
- *   want to query the device and see if it accepts a different DHI, which
+ *   want to query the device and see if it accepts a different DHI/SRQ, which
  *   can be done by calling the provided function, which will return true if
  *   the proposed DHI was accepted, false otherwise (the struct will auto-
  *   update with any new DHI value). Return true to take control of the device,
@@ -111,7 +111,7 @@ typedef struct {
 typedef struct {
 	const char *name;
 	bool accept_noop_talks;
-	bool (*interview_func)(volatile ndev_info*, bool (*handle_change)(uint8_t));
+	bool (*interview_func)(volatile ndev_info*, bool (*handle_change)(uint8_t, bool));
 	void (*talk_func)(uint8_t, host_err, uint32_t, uint8_t, uint8_t*, uint8_t);
 	void (*listen_func)(uint8_t, host_err, uint32_t, uint8_t);
 	void (*flush_func)(uint8_t, host_err, uint32_t);

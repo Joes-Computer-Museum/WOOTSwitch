@@ -275,15 +275,16 @@ static dev_driver keyboard_driver = {
  * ----------------------------------------------------------------------------
  */
 
-static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8_t))
+static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8_t, bool))
 {
 	if (keyboard_count >= MAX_KEYBOARDS) return false;
 	if (info->address_def != 0x02) return false;
 //	if (! (info->dhid_cur >= 0x01 && info->dhid_cur <= 0x03)) return false;
 
+	dbg("    kdb assoc to %d at $%X", info->hdev, info->address_cur);
 	keyboard *kbd = &keyboards[keyboard_count];
 	kbd->hdev = info->hdev;
-	kbd->extended = handle_change(0x03);
+	kbd->extended = handle_change(0x03, true);
 
 	for (uint8_t c = 0; c < COMPUTER_COUNT; c++) {
 		if (kbd->extended) {
