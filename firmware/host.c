@@ -392,7 +392,18 @@ host_err host_reset_bus(void)
 	return host_sync_cmd(0xFF, 0x00, NULL, &len);
 }
 
-// performs ADB address shuffling
+/*
+ * Performs ADB address allocation after a reset. This process deviates quite
+ * a bit from what Inside Macintosh: ADB Manager 5-17 describes, and instead
+ * follows behavior seen by the IIci ROM routine. Changes include:
+ *
+ * - Top address used is 0xF (IM says 0xE)
+ * - A period of back-and-forth swapping happens for each device that IM does
+ *   not mention; IIci seems to do this ~50 times (!) for each device.
+ * - During "swapping" stage, Listen 3 is followed by Talk 3 to the /original/
+ *   address, not the /destination/ address like IM indicates; lack of response
+ *   indicates device moved OK.
+ */
 static host_err host_reset_addresses(void)
 {
 	// wipe existing device/handler assignments
@@ -400,42 +411,69 @@ static host_err host_reset_addresses(void)
 		device_handlers[i] = NULL;
 	}
 
-	// readdress the devices
-	device_count = 0;
 	host_err err = HOSTERR_OK;
-	uint8_t addr_top = 0xE;
-	uint8_t addr_free = 0xE;
 	uint8_t hi, lo;
 
-	for (uint8_t base_addr = 1; base_addr <= 7; base_addr++) {
-		dbg("  addr $%X {", base_addr);
+	// find addresses with devices present
+	uint16_t bad_addrs = 0;
+	uint16_t occupied_addrs = 0;
+	for (uint8_t i = 0x1; i <= 0xF; i++) {
+		if (err = reg3_sync_talk(i, &hi, &lo)) {
+			// only note fault if it was something other than no response
+			if (err != HOSTERR_TIMEOUT) {
+				dbg_err("  addr $%X scan err:%d", i, err);
+				bad_addrs |= 1 << i;
+			}
+		} else {
+			occupied_addrs |= 1 << i;
+			if (i >= 0x8) {
+				// illegal default address, fault out
+				dbg_err("  addr $%X occ on startup, stuck device?", i);
+				return HOSTERR_BAD_DEVICE;
+			} else {
+				dbg("  addr $%X has device(s)", i);
+			}
+		}
+	}
+
+	// start the readdressing process
+	device_count = 0;
+	uint8_t addr_top = 0xF; // IIci uses 0xF, Inside Mac says 0xE
+	uint8_t addr_free = 0xF;
+	for (uint8_t base_addr = 0x1; base_addr <= 0x7; base_addr++) {
+		// was any device detected at this address during the scan?
+		if (! (occupied_addrs & (1 << base_addr))) {
+			continue;
+		}
+
+		dbg("  scan addr $%X {", base_addr);
 		uint8_t dev_at_addr = 0;
 
 		// move all devices at address to free slots
-		while (! (err = reg3_sync_talk(base_addr, &hi, &lo))) {
+		do {
 			// found a device, report the default handler
 			uint8_t dhid = lo;
-			dbg("    fnd $%X (id %d)", dhid, device_count);
+			dbg("    handling $%X", dhid);
 
 			// move it to a free address
 			dev_at_addr++;
-			dbg("    mov $%X", addr_free);
+			dbg("    move to $%X", addr_free);
 			if (err = reg3_sync_listen(base_addr, addr_free, 0xFE)) {
-				dbg_err("    (!) %d", err);
-				// TODO should this be fatal for entire host side?
+				dbg_err("    (!) listen err:%d", err);
+				// inability to send treated as fatal
 				return err;
 			}
 
 			// advance for next
 			addr_free--;
 			if (addr_free < 0x7) {
-				dbg_err("    (!) %d", HOSTERR_TOO_MANY_DEVICES);
+				dbg_err("    (!) err:%d", HOSTERR_TOO_MANY_DEVICES);
 				return HOSTERR_TOO_MANY_DEVICES;
 			}
-		}
+		} while (! (err = reg3_sync_talk(base_addr, &hi, &lo)));
 		if (err != HOSTERR_TIMEOUT) {
 			// bail out, all non-timeout conditions are fatal
-			dbg_err("  } (!) %d", err);
+			dbg_err("  } (!) err:%d", err);
 			return err;
 		}
 
@@ -446,35 +484,42 @@ static host_err host_reset_addresses(void)
 		uint8_t srq_flag = 0x20;
 		for (uint8_t i = 0; i < dev_at_addr; i++) {
 			uint8_t cur_addr = addr_top - i;
+			dbg("    checking $%X", cur_addr);
 
-			// is device still listening to us?
-			if (err = reg3_sync_talk(cur_addr, &hi, &lo)) {
-				dbg_err("    $%X fail T3 %d", cur_addr, err);
-				continue;
-			}
-			// move back to original address
-			dbg("    mov $%X, $%X", base_addr, cur_addr);
-			if (err = reg3_sync_listen(cur_addr, base_addr, 0x00)) {
-				dbg_err("    $%X fail L3 lo mov %d", cur_addr, err);
-				continue;
-			}
-			// did it make it?
-			if (err = reg3_sync_talk(base_addr, &hi, &lo)) {
-				dbg_err("    $%X fail T3 lo mov %d", err);
-				continue;
-			}
+			// perform the swap a number of times, see header for details
+			for (uint8_t j = 0; j < 10; j++) {
+				// move to original address
+				if (err = reg3_sync_listen(cur_addr, base_addr, 0xFE)) {
+					dbg_err("    $%X fail L3 lo mov err:%d", cur_addr, err);
+					return HOSTERR_BAD_DEVICE;
+				}
 
-			// move back to high address, this time including SRQ flag
-			dbg("    mov $%X, $%X", cur_addr, base_addr);
-			if (err = reg3_sync_listen(base_addr, cur_addr | srq_flag, 0x00)) {
-				dbg_err("    $%X fail L3 hi mov %d", cur_addr, err);
-				continue;
-			}
-			// did it make it?
-			if (err = reg3_sync_talk(cur_addr, &hi, &lo)) {
-				// uh-oh, this is more problematic, low address is now fouled!
-				dbg_err("    $%X fail T3 hi mov %d", err);
-				return err; // drop out
+				// did it move?
+				err = reg3_sync_talk(cur_addr, &hi, &lo);
+				if (err != HOSTERR_TIMEOUT) {
+					dbg_err("    $%X failed move err:%d", cur_addr, err);
+					return HOSTERR_BAD_DEVICE;
+				}
+
+				// we are faster than the ROM routine, give device extra time
+				busy_wait_ms(2);
+
+				// move back to high address
+				// still use 0xFE to match ROM behavior
+				if (err = reg3_sync_listen(base_addr, cur_addr, 0xFE)) {
+					dbg_err("    $%X fail L3 hi mov err:%d", cur_addr, err);
+					return HOSTERR_BAD_DEVICE;
+				}
+
+				// did it move?
+				err = reg3_sync_talk(base_addr, &hi, &lo);
+				if (err != HOSTERR_TIMEOUT) {
+					dbg_err("    $%X failed move err:%d", base_addr, err);
+					return HOSTERR_BAD_DEVICE;
+				}
+
+				// as before, let the device do setup before resuming
+				busy_wait_ms(2);
 			}
 
 			// now treat the device as permanent and add to our records
@@ -494,15 +539,17 @@ static host_err host_reset_addresses(void)
 		 * initialize the ADB bus.
 		 */
 		if (dev_at_addr > 0) {
-			dbg("    mov $%X, $%X", base_addr, addr_free + 1);
-			if (err = reg3_sync_listen(addr_free + 1, base_addr | srq_flag, 0x00)) {
-				dbg_err("    (!) %d", err);
+			dbg("    move $%X to $%X", addr_free + 1, base_addr);
+			if (err = reg3_sync_listen(addr_free + 1, base_addr, 0xFE)) {
+				dbg_err("    (!) err:%d", err);
 				return err;
 			}
-			if (err = reg3_sync_talk(base_addr, &hi, &lo)) {
-				dbg_err("    $%X fail T3 fin mov %d", err);
-				return err;
+			err = reg3_sync_talk(addr_free + 1, &hi, &lo);
+			if (err != HOSTERR_TIMEOUT) {
+				dbg_err("    $%X failed move err:%d", addr_free + 1, err);
+				return HOSTERR_BAD_DEVICE;
 			}
+
 			devices[(device_count - 1)].address_cur = base_addr;
 
 			// adjust for next round
@@ -535,7 +582,7 @@ static bool host_handle_change(uint8_t dhid, bool srq)
 	dbg("    id %d dhid to %d?", handle_change_devid, dhid);
 	host_err err;
 	if (err = reg3_sync_talk(addr, &reg3_hi, &device_dhid)) {
-		dbg_err("    id %d err T3!", handle_change_devid);
+		dbg_err("    id %d err T3! err:%d", handle_change_devid, err);
 		device->fault = true;
 		return false;
 	}
