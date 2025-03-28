@@ -752,7 +752,7 @@ host_err host_cmd(uint8_t dev, uint8_t cmd, uint32_t *id,
 			queue[queue_pos].command = cmd;
 		}
 		queue[queue_pos].type = type;
-		queue[cmd_idx].error = HOSTERR_OK; // only set on problems
+		queue[queue_pos].error = HOSTERR_OK; // only set on problems
 
 		// submit Listen data if needed
 		if (type == TYPE_LISTEN) {
