@@ -41,7 +41,6 @@
 
 // see the PIO host definitions for what these values mean
 #define PIO_CMD_OFFSET    2
-#define PIO_RESET_VAL     79 // 4ms, longer than spec 3ms (59)
 #define PIO_CMD_VAL       15
 #define PIO_RX_TIME_VAL   110
 
@@ -56,10 +55,17 @@
 // significantly longer than it should be still. TODO for fixing.
 #define LISTEN_TX_WAIT    110
 
+// options for the host TX/RX/reset PIO unit
+typedef enum {
+	HOST_PIO_TX,
+	HOST_PIO_RX,
+	HOST_PIO_RST
+} host_pio_type;
+
 // trackers for the PIO state machine used
 static uint32_t pio_offset;
 static uint8_t pio_sm;
-static bool pio_tx_prog;
+static host_pio_type pio_tx_prog;
 
 // DMA data reception from devices
 static uint8_t dma_chan;
@@ -150,21 +156,35 @@ host_err reg3_sync_listen(uint8_t addr, uint8_t hi, uint8_t lo)
  */
 
 // swaps the PIO program out (if needed)
-static void host_pio_load_tx(bool tx)
+static void host_pio_load_prog(host_pio_type program)
 {
 	// important: the timer firing during this would be a problem!
 	pio_sm_set_enabled(HOST_PIO, pio_sm, false);
 	pio_interrupt_clear(HOST_PIO, pio_sm);
-	if (tx != pio_tx_prog) {
-		if (tx) {
-			pio_remove_program(HOST_PIO, &bus_rx_host_program, pio_offset);
-			pio_add_program_at_offset(HOST_PIO, &bus_tx_host_program, pio_offset);
-			pio_tx_prog = true;
-		} else {
-			pio_remove_program(HOST_PIO, &bus_tx_host_program, pio_offset);
-			pio_add_program_at_offset(HOST_PIO, &bus_rx_host_program, pio_offset);
-			pio_tx_prog = false;
+	if (program != pio_tx_prog) {
+		switch (pio_tx_prog) {
+			case HOST_PIO_RX:
+				pio_remove_program(HOST_PIO, &bus_rx_host_program, pio_offset);
+				break;
+			case HOST_PIO_TX:
+				pio_remove_program(HOST_PIO, &bus_tx_host_program, pio_offset);
+				break;
+			case HOST_PIO_RST:
+				pio_remove_program(HOST_PIO, &bus_reset_program, pio_offset);
+				break;
 		}
+		switch (program) {
+			case HOST_PIO_RX:
+				pio_add_program_at_offset(HOST_PIO, &bus_rx_host_program, pio_offset);
+				break;
+			case HOST_PIO_TX:
+				pio_add_program_at_offset(HOST_PIO, &bus_tx_host_program, pio_offset);
+				break;
+			case HOST_PIO_RST:
+				pio_add_program_at_offset(HOST_PIO, &bus_reset_program, pio_offset);
+				break;
+		}
+		pio_tx_prog = program;
 	}
 }
 
@@ -263,20 +283,22 @@ static void host_timer(void)
 			}
 
 			// start command
-			host_pio_load_tx(true);
 			pio_sm_config c;
-			bus_tx_host_pio_config(&c, pio_offset, A_DO_PIN, A_DI_PIN);
-			pio_sm_init(HOST_PIO, pio_sm, pio_offset + PIO_CMD_OFFSET, &c);
 			if (queue[cmd_idx].command == 0x00) {
-				// use alternate long reset pulse
-				bus_tx_host_put(HOST_PIO, pio_sm, PIO_RESET_VAL);
+				// send long reset pulse
+				host_pio_load_prog(HOST_PIO_RST);
+				bus_reset_pio_config(&c, pio_offset, A_DO_PIN);
+				pio_sm_init(HOST_PIO, pio_sm, pio_offset, &c);
 				timeout = RESET_TIMEOUT;
 			} else {
 				// normal attention signal
+				host_pio_load_prog(HOST_PIO_TX);
+				bus_tx_host_pio_config(&c, pio_offset, A_DO_PIN, A_DI_PIN);
+				pio_sm_init(HOST_PIO, pio_sm, pio_offset + PIO_CMD_OFFSET, &c);
 				bus_tx_host_put(HOST_PIO, pio_sm, PIO_CMD_VAL);
 				timeout = COMMAND_TIMEOUT;
+				bus_tx_host_put(HOST_PIO, pio_sm, queue[cmd_idx].command);
 			}
-			bus_tx_host_put(HOST_PIO, pio_sm, queue[cmd_idx].command);
 			pio_sm_set_enabled(HOST_PIO, pio_sm, true);
 
 			// advance and setup fallback timer
@@ -313,7 +335,7 @@ static void host_pio_isr(void)
 			switch (queue[cmd_idx].type) {
 			case TYPE_TALK:
 				host_stop_pio();
-				host_pio_load_tx(false);
+				host_pio_load_prog(HOST_PIO_RX);
 
 				bus_rx_host_pio_config(&c, pio_offset, A_DI_PIN);
 				pio_sm_init(HOST_PIO, pio_sm, pio_offset, &c);
@@ -722,7 +744,7 @@ void host_init(void)
 			>= sizeof(bus_rx_host_program_instructions));
 	pio_offset = pio_add_program(HOST_PIO, &bus_tx_host_program);
 	// change the following default if RX ever becomes > TX
-	pio_tx_prog = true;
+	pio_tx_prog = HOST_PIO_TX;
 
 	// issue claims for peripherals to avoid accidental conflicts
 	pio_sm = pio_claim_unused_sm(HOST_PIO, true);

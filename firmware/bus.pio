@@ -190,6 +190,27 @@ static inline void bus_rx_host_pio_config(pio_sm_config *c,
 }
 %}
 
+; Sends a reset pulse on the bus.
+
+.program bus_reset
+.side_set 1
+
+	set x, 3        side 0      ; reset pulse is 4ms long (from 3ms default)
+rst:
+	jmp x-- rst     side 1 [9]  ; 1ms per loop
+	irq wait 0 rel  side 0      ; stop and notify CPU stage is complete
+
+% c-sdk {
+static inline void bus_reset_pio_config(pio_sm_config *c,
+		uint32_t offset, uint32_t pin_write)
+{
+	*c = bus_reset_program_get_default_config(offset);
+	sm_config_set_sideset_pins(c, pin_write);
+	sm_config_set_clkdiv_int_frac(c, 12500, 0); // 100us/clk
+}
+
+%}
+
 
 ; ----------------------------------------------------------------------------
 ; ------------ Device Implementation -----------------------------------------
