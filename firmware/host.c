@@ -489,7 +489,7 @@ static host_err host_reset_addresses(void)
 
 	// find addresses with devices present
 	uint16_t occupied_addrs = 0;
-	for (uint8_t i = 0x1; i <= 0xF; i++) {
+	for (uint8_t i = 0x0; i <= 0xF; i++) {
 		if (err = reg3_sync_talk(i, &hi, &lo)) {
 			// only note fault if it was something other than no response
 			if (err != HOSTERR_TIMEOUT) {
