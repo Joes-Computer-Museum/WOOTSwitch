@@ -45,11 +45,11 @@
 ; data operation. A Listen operation will start automatically if the CPU does
 ; not stop the PIO state machine after the first IRQ fire. You need to provide
 ; an initial TX FIFO value for the length of the low pulse. For regular
-; attention a value of 15 is appropriate ((15+1)*50=800). To make this a reset
-; pulse use 59 or greater instead.
+; attention a value of 52 is appropriate ((52+1)*3=~795), which is actually
+; 801us after the clock stretch noted later.
 ;
-; Starting at (offset + 2) gets attention/sync for commands and should be the
-; normal way to invoke this in almost all cases.
+; Starting at (offset + 2) gets attention for commands and should be the normal
+; way to invoke this in almost all cases.
 ;
 ; The general flow is as follows:
 ;
@@ -68,6 +68,16 @@
 ;
 ; This is a bit convoluted but allows for a more reliable Tlt than using a
 ; separate timer.
+;
+; Note: there are two intentional deviations from the spec here:
+;
+; 1) The clock is slowed down by about 1%, and
+; 2) The sync signal after attention is reduced to 65us, from 70us nominal.
+;
+; These changes were required to get communication working with Gravis
+; joysticks. The 65us sync signal does match what was observed from a IIci. The
+; noted numbers below reflect nominal timings at 5us/clk and *not* the
+; stretched clock.
 
 .program bus_tx_host
 .side_set 1
@@ -75,10 +85,10 @@
 	nop             side 1 [6]  ; '1' bit low, 35us
 	jmp txh_bs      side 0 [12] ; '1' bit high, 65us
 
-	out x, 8        side 0      ; <- entry point for attention/sync
+	out x, 8        side 0      ; <- entry point for attention
 txh_atn:
-	jmp x-- txh_atn side 1 [9]  ; attention, 800us low
-	nop             side 0 [13] ; sync, 70us high
+	jmp x-- txh_atn side 1 [2]  ; attention, 795us low
+	nop             side 0 [12] ; sync, 65us high
 
 txh_bs:
 	out x, 1        side 1 [5]  ; low 30us, fetch bit value
@@ -113,7 +123,7 @@ static inline void bus_tx_host_pio_config(pio_sm_config *c,
 	sm_config_set_in_pins(c, pin_read);
 	sm_config_set_out_shift(c, false, true, 8); // shift left (see below)
 	sm_config_set_fifo_join(c, PIO_FIFO_JOIN_TX);
-	sm_config_set_clkdiv_int_frac(c, 625, 0); // 5us/clk
+	sm_config_set_clkdiv_int_frac(c, 630, 0); // 5.04us/clk
 }
 
 static inline void bus_tx_host_put(PIO pio, uint8_t sm, uint8_t v)

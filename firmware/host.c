@@ -41,7 +41,7 @@
 
 // see the PIO host definitions for what these values mean
 #define PIO_CMD_OFFSET    2
-#define PIO_CMD_VAL       15
+#define PIO_CMD_VAL       52
 #define PIO_RX_TIME_VAL   110
 
 // a few more common timer-based timeouts
