@@ -387,18 +387,26 @@ static bus_phase isr_command_execute(uint8_t i)
 	case TYPE_TALK:
 		dev_pio_tx_start(i); // start immediately, Tlt timing is important
 
-		// we handle register 3 for the drivers
 		reg = computers[i].command & 0x3;
 		computers[i].reg = reg;
 		if (reg == 3) {
+			// we handle register 3 for the drivers
+			// first fetch the device handler ID
+			uint8_t hndl = 0;
+			dev->driver->get_handle_func(i, dev->ref, &hndl);
+			if (hndl == 0xFF) {
+				// stop, no reg3 response is desired
+				dev_pio_stop(i);
+				dev_pio_atn_start(i);
+				return PHASE_IDLE;
+			}
+			// construct response to reg3
 			uint8_t rand_addr = randt[rand_idx++] & 0xF;
 			if (rand_idx >= sizeof(randt)) rand_idx = 0;
 			bus_tx_dev_put(COMPUTER_PIO, i,
 					((dev->srq_en) ? 0x20 : 0x00)
 					| (0x40) // exceptional event, always '1' for us
 					| rand_addr);
-			uint8_t hndl = 0;
-			dev->driver->get_handle_func(i, dev->ref, &hndl);
 			bus_tx_dev_put(COMPUTER_PIO, i, hndl);
 			return PHASE_TALK;
 		} else {

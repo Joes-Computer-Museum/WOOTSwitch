@@ -72,6 +72,7 @@
  *   be either the default _or_ a DHI from set_handle_func that was actually
  *   accepted. Not setting the value will result in a DHI of 0x00, which
  *   the remote system will likely interpret as a failed self-test or error.
+ *   If 0xFF, no response will be generated to Talk Register 3.
  * - (!) [n] `set_handle_func` offers a new DHI to assign. If the handle is
  *   supported it should be assigned internally and then returned each time
  *   from get_handle_func, otherwise leave the old handle alone.
