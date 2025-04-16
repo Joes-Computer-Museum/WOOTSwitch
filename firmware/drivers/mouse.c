@@ -148,7 +148,9 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 
 	mouse *mse = &mice[mouse_count];
 	mse->hdev = info->hdev;
-	mse->sem = xSemaphoreCreateMutex();
+	if (mse->sem == NULL) {
+		mse->sem = xSemaphoreCreateMutex();
+	}
 	assert(mse->sem != NULL);
 
 	// try to change the device to the extended mouse protocol
