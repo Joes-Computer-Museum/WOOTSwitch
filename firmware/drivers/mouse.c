@@ -96,9 +96,11 @@ static void drvr_get_handle(uint8_t comp, uint32_t ref, uint8_t *hndl)
 
 static void drvr_set_handle(uint8_t comp, uint32_t ref, uint8_t hndl)
 {
-	if (hndl != 0x01 || hndl != 0x02 || hndl != 0x04) return;
-
-	mice[ref].dhi[comp] = hndl;
+	if (hndl == 0x01
+			|| hndl == 0x02
+			|| hndl == 0x04) {
+		mice[ref].dhi[comp] = hndl;
+	}
 }
 
 static void drvr_talk(uint8_t comp, uint32_t ref, uint8_t reg)
