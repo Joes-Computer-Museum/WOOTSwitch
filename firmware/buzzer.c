@@ -57,8 +57,10 @@ void buzzer_play(uint16_t freq, uint16_t duration_ms, uint8_t vol)
 	if (freq > FREQ_MAX) freq = FREQ_MAX;
 
 	float div = clock_get_hz(clk_sys) / (float) (freq * PWM_LENGTH);
+#ifndef BUZZER_DISABLE
 	pwm_set_clkdiv(slice, div);
 	pwm_set_chan_level(slice, chan, vol);
+#endif
 
 	uint32_t isr = save_and_disable_interrupts();
 	uint32_t future = time_us_32() + duration_ms * 1000;
