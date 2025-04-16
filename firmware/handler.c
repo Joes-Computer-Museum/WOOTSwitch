@@ -17,8 +17,10 @@
 
 #include "pico/stdlib.h"
 
+#include "debug.h"
 #include "handler.h"
 
+#include "drivers/joystick.h"
 #include "drivers/keyboard.h"
 #include "drivers/mouse.h"
 
@@ -34,12 +36,15 @@ uint8_t handler_count()
 bool handler_register(ndev_handler *handler)
 {
 	if (handler == NULL) {
+		dbg_err("rej null hndl!");
 		return false;
 	}
 	if (handler_list_count < HANDLER_MAX) {
+		dbg("reg handler '%s'", handler->name);
 		handler_list[handler_list_count++] = *handler;
 		return true;
 	} else {
+		dbg_err("hdnl cnt!");
 		return false;
 	}
 }
@@ -65,4 +70,5 @@ void handler_init(void)
 
 	keyboard_init();
 	mouse_init();
+	joystick_init();
 }
