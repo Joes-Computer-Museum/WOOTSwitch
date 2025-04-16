@@ -701,8 +701,7 @@ static inline void computer_data_set_talk(uint8_t comp, comp_device *dev,
 		}
 	} else {
 		dev->talk[reg].keep = false;
-
-		if (reg == 0 && dev->srq_en) {
+		if (reg == 0) {
 			computers[comp].srq &= ~(1U << dev->address);
 		}
 	}
