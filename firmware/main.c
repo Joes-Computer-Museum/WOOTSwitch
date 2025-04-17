@@ -79,10 +79,12 @@ static void init_task(__unused void *parameters)
 	host_err herr;
 	if (herr = host_reset_bus()) {
 		dbg_err("host bus reset err %d", herr);
+		led_error(true);
 	}
 	busy_wait_ms(1);
 	if (herr = host_reset_devices()) {
 		dbg_err("host device reset err %d", herr);
+		led_error(true);
 	} else {
 		dbg("host reset ok!");
 	}
