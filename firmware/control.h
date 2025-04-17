@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 saybur
+ * Copyright (C) 2024-2025 saybur
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,19 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __SERIAL_H__
-#define __SERIAL_H__
+#ifndef __CONTROL_H__
+#define __CONTROL_H__
 
-#define SER_CMD_MSE_DOWN      0x80
-#define SER_CMD_MSE_UP        0x81
-#define SER_CMD_MSE_X         0x82
-#define SER_CMD_MSE_Y         0x83
-#define SER_CMD_MSE_APPLY     0x84
-#define SER_CMD_SWITCH        0x85
-#define SER_CMD_KBD_DOWN      0x86
-#define SER_CMD_KBD_UP        0x87
+#define CONTROL_REBOOT_IF_IDLE    0xF0
+#define CONTROL_REBOOT_ALWAYS     0xF1
 
-void serial_enqueue(uint8_t);
-void serial_init(void);
+/**
+ * Task responsible for the serial control interface. Users should not call
+ * this function.
+ */
+void control_task(void *parameters);
 
-#endif /* __SERIAL_H__ */
+#endif /* __CONTROL_H__ */

@@ -207,7 +207,7 @@ static void serial_mse_send()
 	mouse.cache[1] &= 0x80;
 }
 
-static void serial_enqueue(uint8_t c) {
+void serial_enqueue(uint8_t c) {
 	if (c >= 0x80) {
 		command = c;
 		switch (command) {
@@ -223,8 +223,7 @@ static void serial_enqueue(uint8_t c) {
 			serial_mse_send();
 			break;
 		}
-	}
-	else {
+	} else {
 		switch (command) {
 		case SER_CMD_MSE_X:
 			mouse.cache[1] = (mouse.cache[1] & 0x80) | c;
@@ -245,15 +244,6 @@ static void serial_enqueue(uint8_t c) {
 	}
 }
 
-static void serial_task(__unused void *parameters)
-{
-	unsigned char c;
-	while (true) {
-		c = getc(stdin);
-		serial_enqueue(c);
-	}
-}
-
 void serial_init(void)
 {
 	mouse.sem = xSemaphoreCreateMutex();
@@ -266,9 +256,6 @@ void serial_init(void)
 
 	keyboard.queue = xQueueCreate(KEYBOARD_QUEUE_DEPTH,
 				sizeof(serial_message));
-
-	xTaskCreate(serial_task, "serial", configMINIMAL_STACK_SIZE,
-			NULL, tskIDLE_PRIORITY, NULL);
 
 	driver_register(&mouse.drv_idx, &serial_mse_driver, 1);
 	driver_register(&keyboard.drv_idx, &serial_kdb_driver, 1);

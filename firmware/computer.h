@@ -73,6 +73,15 @@ bool computer_data_set(uint8_t comp, uint8_t drv_idx, uint8_t reg,
 		uint8_t *data, uint8_t data_len, bool keep);
 
 /**
+ * Reports if one or more computers have experienced a reset pulse. Used to
+ * determine if a device reset is appropriate during a serial connection.
+ *
+ * @return true     if any connected computer has sent a reset pulse, false
+ *                  otherwise.
+ */
+bool computer_is_live(void);
+
+/**
  * Assigns a queue that will be queried for Talk 0 data automatically.
  *
  * This mechanism allows drivers to use a more asynchronous method to perform

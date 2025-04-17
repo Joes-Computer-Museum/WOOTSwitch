@@ -26,6 +26,7 @@
 #include "button.h"
 #include "buzzer.h"
 #include "computer.h"
+#include "control.h"
 #include "debug.h"
 #include "driver.h"
 #include "host.h"
@@ -82,6 +83,8 @@ static void init_task(__unused void *parameters)
 			NULL, DISPATCH_PRIORITY, NULL);
 	xTaskCreate(button_task, "button", DEFAULT_STACK,
 			NULL, DEFAULT_PRIORITY, NULL);
+	xTaskCreate(control_task, "control", configMINIMAL_STACK_SIZE,
+			NULL, tskIDLE_PRIORITY, NULL);
 
 	vTaskDelete(NULL);
 }

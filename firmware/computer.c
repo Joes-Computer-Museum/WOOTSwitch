@@ -901,6 +901,14 @@ void computer_init(void)
 			computer_gpio_isr);
 }
 
+bool computer_is_live(void)
+{
+	for (uint8_t i = 0; i < COMPUTER_COUNT; i++) {
+		if (computers[i].status != STATUS_OFF) return true;
+	}
+	return false;
+}
+
 void computer_start(void)
 {
 	for (uint8_t i = 0; i < COMPUTER_COUNT; i++) {

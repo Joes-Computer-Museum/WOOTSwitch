@@ -23,7 +23,7 @@ add_subdirectory(drivers)
 add_subdirectory(usb)
 
 target_sources(hootswitch PRIVATE
-		button.c buzzer.c computer.c debug.c driver.c handler.c host.c host_sync.c led.c main.c util.c
+		button.c buzzer.c computer.c control.c debug.c driver.c handler.c host.c host_sync.c led.c main.c util.c
 		)
 
 target_link_libraries(hootswitch
