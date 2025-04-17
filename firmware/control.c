@@ -28,11 +28,22 @@
 
 #include "drivers/serial.h"
 
-static void control_reboot(bool always)
+#define WATCHDOG_SCRATCH_REG   0
+
+#define CONTROL_WDRST_DEBUG    0xA5A5A5A5
+
+static volatile bool active = false;
+
+static void control_reboot(bool always, bool debug)
 {
 	if (!always && computer_is_live()) {
 		dbg("comp active, reboot cancelled");
 		return;
+	}
+
+	// set flag to pause restarting, if needed
+	if (debug) {
+		watchdog_hw->scratch[WATCHDOG_SCRATCH_REG] = CONTROL_WDRST_DEBUG;
 	}
 
 	// perform watchdog reset
@@ -45,15 +56,42 @@ static void control_enqueue(unsigned char c)
 	if (c >= 0xF0) {
 		switch (c) {
 		case CONTROL_REBOOT_IF_IDLE:
-			control_reboot(false);
+			control_reboot(false, false);
 			break;
 		case CONTROL_REBOOT_ALWAYS:
-			control_reboot(true);
+			control_reboot(true, false);
+			break;
+		case CONTROL_REBOOT_DEBUG:
+			control_reboot(false, true);
 			break;
 		}
-	} else {
+	} else if (active) {
 		serial_enqueue(c);
 	}
+}
+
+control_reset_type control_check_reset(void)
+{
+	// retrieve and clear any special flags
+	uint32_t w = watchdog_hw->scratch[WATCHDOG_SCRATCH_REG];
+	watchdog_hw->scratch[WATCHDOG_SCRATCH_REG] = 0;
+
+	// if the watchdog was responsible for the reset,
+	// check if it was a special condition we need to report
+	if (watchdog_enable_caused_reboot()) {
+		switch (w) {
+			case CONTROL_WDRST_DEBUG:
+				return RESET_TYPE_DEBUG;
+		}
+	}
+
+	// fallback to normal
+	return RESET_TYPE_NORMAL;
+}
+
+void control_start(void)
+{
+	active = true;
 }
 
 void control_task(__unused void *parameters)

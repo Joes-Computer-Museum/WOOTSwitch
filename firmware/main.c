@@ -43,7 +43,6 @@
 static void init_hardware(void)
 {
 	led_init();
-	led_activity(true);
 
 	buzzer_init();
 	host_init();
@@ -58,8 +57,23 @@ static void init_task(__unused void *parameters)
 {
 	// wait for USB enumeration, and for ADB devices to power up themselves up
 	busy_wait_ms(1600);
-	dbg(PROGRAM_NAME);
 
+	// handle alternate startup conditions
+	switch (control_check_reset()) {
+		case RESET_TYPE_DEBUG:
+			// wait for a USB UART to connect
+			bool led = false;
+			while (! stdio_usb_connected()) {
+				vTaskDelay(100);
+				cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, led);
+				led = !led;
+			}
+			cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+			break;
+	}
+
+	dbg(PROGRAM_NAME);
+	led_activity(true);
 	handler_init();
 
 	host_err herr;
@@ -76,6 +90,7 @@ static void init_task(__unused void *parameters)
 	driver_init();
 	computer_start();
 	computer_switch(1, true);
+	control_start();
 
 	xTaskCreate(computer_task, "computer", DEFAULT_STACK,
 			NULL, DISPATCH_PRIORITY, NULL);

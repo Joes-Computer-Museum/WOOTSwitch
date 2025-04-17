@@ -249,6 +249,19 @@ function switcherSetup()
 		btn.appendChild(c);
 		macrosArea.appendChild(btn);
 	}
+
+	const btn = document.createElement("button");
+	btn.addEventListener("click", () => {
+		if (! port) return;
+		if (window.confirm("Do you want to perform a restart to debug? (See the wiki for details)")) {
+			console.log("debug restart requested");
+			const a = new Uint8Array([0xF2]);
+			writer.write(a);
+		}
+	});
+	const c = document.createTextNode("Restart/Debug");
+	btn.appendChild(c);
+	macrosArea.appendChild(btn);
 }
 switcherSetup();
 
