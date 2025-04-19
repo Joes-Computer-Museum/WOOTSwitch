@@ -26,6 +26,7 @@
 #include "button.h"
 #include "buzzer.h"
 #include "computer.h"
+#include "config.h"
 #include "control.h"
 #include "debug.h"
 #include "driver.h"
@@ -53,6 +54,21 @@ static void init_hardware(void)
 	gpio_pull_up(SWITCH_PIN);
 }
 
+static void init_config(void)
+{
+	config_setup();
+
+	// read core configuration information, and on failure leave at defaults
+	uint8_t core;
+	if (config_read(4, &core, 1)) {
+		return;
+	}
+
+	if (! (core & 1)) {
+		buzzer_enable(false);
+	}
+}
+
 static void init_task(__unused void *parameters)
 {
 	// wait for USB enumeration, and for ADB devices to power up themselves up
@@ -73,6 +89,7 @@ static void init_task(__unused void *parameters)
 	}
 
 	dbg(PROGRAM_NAME);
+	init_config();
 	led_activity(true);
 	handler_init();
 

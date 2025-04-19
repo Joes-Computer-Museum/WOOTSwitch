@@ -36,6 +36,7 @@
 #define CHIRP_DURATION  100
 #define CHIRP_VOLUME    64
 
+static volatile bool buzzer_enabled = true;
 static uint8_t slice;
 static uint8_t chan;
 
@@ -50,6 +51,11 @@ void buzzer_chirp(void)
 	buzzer_play(CHIRP_FREQ, CHIRP_DURATION, CHIRP_VOLUME);
 }
 
+void buzzer_enable(bool enabled)
+{
+	buzzer_enabled = enabled;
+}
+
 void buzzer_play(uint16_t freq, uint16_t duration_ms, uint8_t vol)
 {
 	if (duration_ms == 0) return;
@@ -58,8 +64,11 @@ void buzzer_play(uint16_t freq, uint16_t duration_ms, uint8_t vol)
 
 	float div = clock_get_hz(clk_sys) / (float) (freq * PWM_LENGTH);
 #ifndef BUZZER_DISABLE
-	pwm_set_clkdiv(slice, div);
-	pwm_set_chan_level(slice, chan, vol);
+	// even if disabled go through most of the motions to keep timing similar
+	if (buzzer_enabled) {
+		pwm_set_clkdiv(slice, div);
+		pwm_set_chan_level(slice, chan, vol);
+	}
 #endif
 
 	uint32_t isr = save_and_disable_interrupts();

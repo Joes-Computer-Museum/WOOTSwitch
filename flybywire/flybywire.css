@@ -54,6 +54,7 @@ h1 {
 	width: 640px;
 	margin-top: 20px;
 	vertical-align: center;
+	justify-content: center;
 }
 
 #macros button {
@@ -98,6 +99,16 @@ textarea {
 	border: 1px solid #555;
 	color: #ccc;
 	background-color: #333;
+}
+
+fieldset {
+	margin: 0 auto;
+	width: 990px;
+	border-color: #ccc;
+}
+
+legend {
+	font-weight: bold;
 }
 
 .hidden {

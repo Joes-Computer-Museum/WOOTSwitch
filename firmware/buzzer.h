@@ -24,6 +24,13 @@
 void buzzer_chirp(void);
 
 /**
+ * Enables or disables the buzzer component.
+ *
+ * @param enabled      if false mute the buzzer.
+ */
+void buzzer_enable(bool enabled);
+
+/**
  * Simple square wave PWM audio on the buzzer.
  *
  * Don't expect much out of this, the code was thrown together quickly. It does

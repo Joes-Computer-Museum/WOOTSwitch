@@ -23,6 +23,7 @@
 #include "task.h"
 
 #include "computer.h"
+#include "config.h"
 #include "control.h"
 #include "debug.h"
 
@@ -32,15 +33,10 @@
 
 #define CONTROL_WDRST_DEBUG    0xA5A5A5A5
 
-static volatile bool active = false;
+static volatile control_mode_type mode = CONTROL_MODE_IDLE;
 
-static void control_reboot(bool always, bool debug)
+static void control_reboot(bool debug)
 {
-	if (!always && computer_is_live()) {
-		dbg("comp active, reboot cancelled");
-		return;
-	}
-
 	// set flag to pause restarting, if needed
 	if (debug) {
 		watchdog_hw->scratch[WATCHDOG_SCRATCH_REG] = CONTROL_WDRST_DEBUG;
@@ -55,18 +51,23 @@ static void control_enqueue(unsigned char c)
 {
 	if (c >= 0xF0) {
 		switch (c) {
-		case CONTROL_REBOOT_IF_IDLE:
-			control_reboot(false, false);
-			break;
-		case CONTROL_REBOOT_ALWAYS:
-			control_reboot(true, false);
+		case CONTROL_REBOOT:
+			control_reboot(false);
 			break;
 		case CONTROL_REBOOT_DEBUG:
-			control_reboot(false, true);
+			control_reboot(true);
 			break;
+		case CONTROL_START_CONFIG_WRITE:
+			mode = CONTROL_MODE_CONFIG_WRITE;
 		}
-	} else if (active) {
+	} else if (mode == CONTROL_MODE_FLYBYWIRE) {
 		serial_enqueue(c);
+	} else if (mode == CONTROL_MODE_CONFIG_WRITE) {
+		bool resp = false;
+		config_write_serial_byte(c, &resp);
+		if (resp) {
+			mode == CONTROL_MODE_IDLE;
+		}
 	}
 }
 
@@ -91,7 +92,7 @@ control_reset_type control_check_reset(void)
 
 void control_start(void)
 {
-	active = true;
+	mode = CONTROL_MODE_FLYBYWIRE;
 }
 
 void control_task(__unused void *parameters)

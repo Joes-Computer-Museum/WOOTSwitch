@@ -80,6 +80,9 @@
 #define COMPUTER_2_DMA      8
 #define COMPUTER_3_DMA      9
 
+// additional DMA channel used for handling configuration data
+#define CONFIG_DMA_CHAN     5
+
 // "host" refers to the connection with the native peripherals on the front
 #define HOST_PIO            pio1
 #define HOST_PIO_IRQ0       PIO1_IRQ_0

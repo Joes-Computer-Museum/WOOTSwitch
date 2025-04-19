@@ -18,14 +18,20 @@
 #ifndef __CONTROL_H__
 #define __CONTROL_H__
 
-#define CONTROL_REBOOT_IF_IDLE    0xF0
-#define CONTROL_REBOOT_ALWAYS     0xF1
-#define CONTROL_REBOOT_DEBUG      0xF2
+#define CONTROL_REBOOT                0xF1
+#define CONTROL_REBOOT_DEBUG          0xF2
+#define CONTROL_START_CONFIG_WRITE    0xF3
 
 typedef enum {
 	RESET_TYPE_NORMAL = 0,
 	RESET_TYPE_DEBUG
 } control_reset_type;
+
+typedef enum {
+	CONTROL_MODE_IDLE = 0,
+	CONTROL_MODE_FLYBYWIRE,
+	CONTROL_MODE_CONFIG_WRITE
+} control_mode_type;
 
 /**
  * Indicates if there was a special reset condition that should change the
