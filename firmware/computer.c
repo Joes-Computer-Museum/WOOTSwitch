@@ -776,7 +776,6 @@ bool computer_data_set(uint8_t comp, uint8_t drv_idx, uint8_t reg,
 	if (comp >= COMPUTER_COUNT) return false;
 	if (drv_idx >= computers[comp].device_count) return false;
 	if (reg > 2) return false;
-	if (data_len > 8 || data_len < 2) return false;
 
 	comp_device *dev = &computers[comp].devices[drv_idx];
 	if (sem_acquire_timeout_us(&dev->sem, 1000)) {
