@@ -146,6 +146,17 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 	if (mouse_count >= MAX_MICE) return false;
 	if (info->address_def != DEFAULT_ADDRESS) return false;
 
+	// probe mouse for a general Talk 3 response
+	// if nothing returned it's likely a disabled Kensington secondary device
+	host_err err;
+	uint8_t dev_reg[8];
+	uint8_t dev_reg_len;
+	if (err = host_sync_cmd(info->hdev, COMMAND_TALK_3, dev_reg, &dev_reg_len)) {
+		dbg("    id %d t3 resp %d, skip", info->hdev, err);
+		return false;
+	}
+
+	// past this point we assume adoption unless it errors out
 	mouse *mse = &mice[mouse_count];
 	mse->hdev = info->hdev;
 	if (mse->sem == NULL) {
