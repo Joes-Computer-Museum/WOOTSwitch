@@ -35,7 +35,7 @@
 #include "led.h"
 #include "usb.h"
 
-#define PROGRAM_NAME       "hootswitch-v20240803"
+#define PROGRAM_NAME       "hootswitch-v20250420"
 
 #define DEFAULT_STACK      configMINIMAL_STACK_SIZE
 #define DEFAULT_PRIORITY   (tskIDLE_PRIORITY + 1U)
