@@ -83,6 +83,11 @@ static volatile ndev_info devices[DEVICE_MAX];
 static volatile ndev_handler *device_handlers[DEVICE_MAX];
 static volatile uint8_t device_count;
 
+// table for controlling the order of devices when servicing SRQs
+// also used to prune faulted devices out of the above arrays
+static volatile uint8_t device_itr[DEVICE_MAX];
+static volatile uint8_t device_itr_count;
+
 /*
  * Queue for requested commands on devices, implemented as a simple ring buffer
  * with a tail pointer and size value. Queue size must be a power of 2. Queue
@@ -511,6 +516,7 @@ static host_err host_reset_addresses(void)
 	host_err err = HOSTERR_OK;
 	uint8_t hi, lo;
 	device_count = 0;
+	device_itr_count = 0;
 
 	/*
 	 * Track which addresses have devices present. A nonzero value means a
@@ -689,16 +695,29 @@ static host_err host_handle_setup(void)
 
 // removes faulted devices and devices with no handler from the listing to
 // avoid dealing with them later
-static void host_prune_faulted(void)
+static void host_build_itr_table(void)
 {
+	// build iterator list
+	device_itr_count = 0;
 	for (uint8_t i = 0; i < device_count; i++) {
 		if (devices[i].fault || device_handlers[i] == NULL) {
-			dbg_err("host drop dev %d", i);
-			for (uint8_t j = i; j < device_count - 1; j++) {
-				devices[j] = devices[j+1];
-				device_handlers[j] = device_handlers[j+1];
-			}
-			device_count--;
+			dbg("host drop dev %d", i);
+		} else {
+			device_itr[device_itr_count++] = i;
+		}
+	}
+
+	// insertion sort by device address
+	uint8_t i = 1;
+	for (uint8_t i = 1; i < device_itr_count; i++) {
+		uint8_t j = i;
+		while (j > 0
+				&& devices[device_itr[j - 1]].address_cur
+						> devices[device_itr[j]].address_cur) {
+			uint8_t t = device_itr[j];
+			device_itr[j] = device_itr[j - 1];
+			device_itr[j - 1] = t;
+			j--;
 		}
 	}
 }
@@ -723,8 +742,8 @@ host_err host_reset_devices(void)
 	}
 
 	// make sure there is at least one working device before resuming
-	host_prune_faulted();
-	if (device_count == 0) {
+	host_build_itr_table();
+	if (device_itr_count == 0) {
 		dbg_err("disabling host, no devices!");
 		return HOSTERR_NO_DEVICES;
 	}
@@ -939,8 +958,27 @@ void host_poll(void)
 	// if no commands are pending insert an idle poll command
 	if (idle_poll && queue_count == 0) {
 		uint8_t dev = cmd_last_dev;
-		if (srq) dev++;
-		if (dev >= device_count) dev = 0;
+		if (srq) {
+			// advance to next device
+			bool found = false;
+			for (uint8_t i = 0; !found && i < device_itr_count; i++) {
+				// hunt for device in iterator list
+				if (device_itr[i] == dev) {
+					// found, pick next device or wrap to beginning
+					if (i == device_itr_count - 1) {
+						dev = device_itr[0];
+					} else {
+						dev = device_itr[i + 1];
+					}
+					found = true;
+				}
+			}
+			if (! found) {
+				// host may have been talking to a faulted device
+				// fallback to first device
+				dev = device_itr[0];
+			}
+		}
 		host_cmd(dev, COMMAND_TALK_0, NULL, NULL, 0);
 	}
 }
