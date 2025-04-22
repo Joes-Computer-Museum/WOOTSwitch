@@ -66,7 +66,7 @@ config_err config_setup(void)
 	// setup XIP stream peripheral to get block of data from flash
 	while (! (xip_ctrl_hw->stat & XIP_STAT_FIFO_EMPTY))
 		(void) xip_ctrl_hw->stream_fifo;
-	xip_ctrl_hw->stream_addr = (uint32_t) CONFIG_OFFSET;
+	xip_ctrl_hw->stream_addr = (uint32_t) CONFIG_SECTOR;
 	xip_ctrl_hw->stream_ctr = CONFIG_SIZE / 4;
 
 	// setup the DMA channel to perform the reading from XIP into RAM
@@ -166,8 +166,8 @@ config_err config_write_serial_byte(uint8_t c, bool* done)
 		dbg("config write starting...");
 		vTaskSuspendAll();
 		uint32_t isr = save_and_disable_interrupts();
-		flash_range_erase(CONFIG_OFFSET, FLASH_SECTOR_SIZE);
-		flash_range_program(CONFIG_OFFSET, (uint8_t*)config_data, CONFIG_SIZE);
+		flash_range_erase(CONFIG_SECTOR, FLASH_SECTOR_SIZE);
+		flash_range_program(CONFIG_SECTOR, (uint8_t*)config_data, CONFIG_SIZE);
 		restore_interrupts_from_disabled(isr);
 		xTaskResumeAll();
 		dbg("config write done!");

@@ -60,7 +60,7 @@ static void init_config(void)
 
 	// read core configuration information, and on failure leave at defaults
 	uint8_t core;
-	if (config_read(4, &core, 1)) {
+	if (config_read(CONFIG_OFFSET_BASE, &core, 1)) {
 		return;
 	}
 

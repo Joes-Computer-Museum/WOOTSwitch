@@ -23,7 +23,14 @@
  * space. This may be changed as needed, but ensure you are not clobbering
  * program code or Bad Things may happen.
  */
-#define CONFIG_OFFSET                   0x1FF000
+#define CONFIG_SECTOR                   0x1FF000
+
+/*
+ * Base addresses within the flash sector where various components have their
+ * setting stored.
+ */
+#define CONFIG_OFFSET_BASE              4
+#define CONFIG_OFFSET_KENS              32
 
 typedef enum {
 	CONFIG_OK = 0,
