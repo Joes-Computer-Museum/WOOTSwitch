@@ -23,6 +23,7 @@
 #include "semphr.h"
 
 #include "computer.h"
+#include "config.h"
 #include "debug.h"
 #include "driver.h"
 #include "handler.h"
@@ -44,10 +45,17 @@
 #define MAX_DEVICES 2
 
 typedef enum {
-	KMODE_PRI_100CPI = 0,
-	KMODE_PRI_200CPI,
-	KMODE_PRI_EXTENDED
-} kmode;
+	EMULATE_NATIVE = 0,
+	EMULATE_LEGACY,      // Turbo Mouse 4.0
+	EMULATE_EXTENDED     // Turbo Mouse 5.0
+} emulation;
+
+static uint8_t emul_legacy_reg2[REGISTER_2_LEN] =
+		{ 0x20, 0x09, 0x40, 0x01, 0x14, 0x3B, 0xFF };
+static uint8_t emul_extended_reg2[REGISTER_2_LEN] =
+		{ 0x25, 0x11, 0x52, 0x00, 0x11, 0xFF, 0xFF };
+static uint8_t emul_extended_reg1[REGISTER_1_LEN] =
+		{ 0x4B, 0x4D, 0x4C, 0x31, 0x00, 0xC8, 0x02, 0x04 };
 
 typedef struct {
 	uint8_t hdev;
@@ -57,9 +65,16 @@ typedef struct {
 	bool pending;      // true if motion cache is valid
 	int16_t x, y;      // accumulated X/Y movement data
 	uint8_t buttons;   // last seen button data, 0=pressed, 1=released
-	bool extended;     // device responds on register 1 for extended protocol
-	uint8_t reg1_default[REGISTER_1_LEN];
-	uint8_t reg2_default[REGISTER_2_LEN];
+
+	// chooses whether a particular 'fake' response type should be generated
+	// for each computer or if a native device information should be passed
+	emulation mode[COMPUTER_COUNT];
+	// native register 1 value read from the device at initialization time;
+	// may be set to all-zeroes if the native device had no register for this
+	uint8_t reg1_native[REGISTER_1_LEN];
+	// native register 2 value read from the device at initialization time
+	uint8_t reg2_native[REGISTER_2_LEN];
+	// computer-side control flags as set by the remote system
 	uint8_t reg2_flags[COMPUTER_COUNT];
 } kmouse;
 
@@ -88,6 +103,31 @@ static void reg2_apply(uint8_t comp, uint8_t dev, uint8_t* data)
 	mice[dev].reg2_flags[comp] = data[0];
 }
 
+// returns true if the primary device has been activated
+static bool use_primary(uint8_t comp, uint8_t dev)
+{
+	return mice[dev].reg2_flags[comp] & 0x80;
+}
+
+// true if a Talk 0 response to a given computer from a given device is capable
+// of using the extended protocol (3 bytes), false for basic protocol (2 bytes)
+static bool extended_supported(uint8_t comp, uint8_t dev)
+{
+	if (use_primary(comp, dev)) {
+		// using primary device
+		if (mice[dev].mode[comp] == EMULATE_NATIVE) {
+			// no change from native device, report what it supports
+			return mice[dev].reg1_native[0] != 0x00;
+		} else {
+			// emulating something else, report what it can do
+			return mice[dev].mode[active] != EMULATE_LEGACY;
+		}
+	} else {
+		// using secondary device, only device handler ID controls
+		return mice[dev].dhi[comp] == 0x04;
+	}
+}
+
 /*
  * ----------------------------------------------------------------------------
  * --- Computer-Side Driver ---------------------------------------------------
@@ -96,16 +136,28 @@ static void reg2_apply(uint8_t comp, uint8_t dev, uint8_t* data)
 
 static void drvr_reset(uint8_t comp, uint32_t ref)
 {
-	// reset primary device registers
-	computer_data_set(comp, mice[ref].drv_idx_pri, 2,
-			mice[ref].reg2_default, REGISTER_2_LEN, true);
-	if (mice[ref].extended) {
+	if (mice[ref].mode[comp] == EMULATE_LEGACY) {
+		// set register 2, register 1 does not exist for this device type
+		computer_data_set(comp, mice[ref].drv_idx_pri, 2,
+				emul_legacy_reg2, REGISTER_2_LEN, true);
+		reg2_apply(comp, ref, emul_legacy_reg2);
+	} else if (mice[ref].mode[comp] == EMULATE_EXTENDED) {
+		// set both register 1 and 2
 		computer_data_set(comp, mice[ref].drv_idx_pri, 1,
-				mice[ref].reg1_default, REGISTER_1_LEN, true);
+				emul_extended_reg1, REGISTER_1_LEN, true);
+		computer_data_set(comp, mice[ref].drv_idx_pri, 2,
+				emul_extended_reg2, REGISTER_2_LEN, true);
+		reg2_apply(comp, ref, emul_extended_reg2);
+	} else {
+		// use the native device information to set
+		if (mice[ref].reg1_native != 0x00) {
+			computer_data_set(comp, mice[ref].drv_idx_pri, 1,
+					mice[ref].reg1_native, REGISTER_1_LEN, true);
+		}
+		computer_data_set(comp, mice[ref].drv_idx_pri, 2,
+				mice[ref].reg2_native, REGISTER_2_LEN, true);
+		reg2_apply(comp, ref, mice[ref].reg2_native);
 	}
-
-	// and any local storage for reference
-	mice[ref].reg2_flags[comp] = mice[ref].reg2_default[0];
 
 	// reset secondary handler and clear register 1 response
 	mice[ref].dhi[comp] = DEFAULT_SEC_HANDLER;
@@ -132,7 +184,7 @@ static void drvr_pri_get_handle(uint8_t comp, uint32_t ref, uint8_t *hndl)
 
 static void drvr_sec_get_handle(uint8_t comp, uint32_t ref, uint8_t *hndl)
 {
-	if (mice[ref].reg2_flags[comp] & 0x80) {
+	if (use_primary(comp, ref)) {
 		// primary is active, do not reply
 		*hndl = 0xFF;
 	} else {
@@ -145,10 +197,19 @@ static void drvr_sec_set_handle(uint8_t comp, uint32_t ref, uint8_t hndl)
 {
 	if (hndl == 0x01 || hndl == 0x02) {
 		mice[ref].dhi[comp] = hndl;
-	} else if (mice[ref].extended && hndl == 0x04) {
+	} else if (hndl == 0x04 && extended_supported(comp, ref)) {
+		// supports extended mode and is being asked to go into it
 		mice[ref].dhi[comp] = hndl;
-		computer_data_set(comp, mice[ref].drv_idx_sec, 1,
-				mice[ref].reg1_default, REGISTER_1_LEN, true);
+
+		// clone the regular device register 1
+		if (mice[ref].mode[comp] == EMULATE_EXTENDED) {
+			computer_data_set(comp, mice[ref].drv_idx_sec, 1,
+					emul_extended_reg1, REGISTER_1_LEN, true);
+		} else {
+			// assume native passthrough
+			computer_data_set(comp, mice[ref].drv_idx_sec, 1,
+					mice[ref].reg1_native, REGISTER_1_LEN, true);
+		}
 	}
 }
 
@@ -157,7 +218,7 @@ static void drvr_talk(uint8_t comp, uint32_t ref, uint8_t reg, bool pri)
 	if (active != comp) return;
 
 	uint8_t drv_idx = pri ? mice[ref].drv_idx_pri : mice[ref].drv_idx_sec;
-	bool extended = mice[ref].extended
+	bool extended = extended_supported(comp, ref)
 			&& (pri ? true : mice[ref].dhi[comp] == 0x04);
 
 	if (reg == 0 && xSemaphoreTake(mice[ref].sem, portMAX_DELAY)) {
@@ -194,13 +255,24 @@ static void drvr_pri_listen(uint8_t comp, uint32_t ref, uint8_t reg,
 	uint8_t reg2[REGISTER_2_LEN];
 	reg2[0] = data[0];
 	reg2[1] = data[1];
-	reg2[2] = mice[ref].reg2_default[2];
-	reg2[3] = mice[ref].reg2_default[3];
+	switch (mice[ref].mode[comp]) {
+		case EMULATE_LEGACY:
+			reg2[2] = emul_legacy_reg2[2];
+			reg2[3] = emul_legacy_reg2[3];
+			break;
+		case EMULATE_EXTENDED:
+			reg2[2] = emul_extended_reg2[2];
+			reg2[3] = emul_extended_reg2[3];
+			break;
+		default:
+			reg2[2] = mice[ref].reg2_native[2];
+			reg2[3] = mice[ref].reg2_native[3];
+	}
 	reg2[4] = data[4];
 	reg2[5] = data[5];
 	reg2[6] = data[6];
 
-	// store relevant data that affects local device behavior
+	// store just the relevant data affecting local device behavior
 	reg2_apply(comp, ref, reg2);
 
 	// store the updated register information for talking back
@@ -260,9 +332,19 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 	}
 	assert(mse->sem != NULL);
 	mse->buttons = 0xFF;
-	memcpy(mse->reg2_default, tmp, REGISTER_2_LEN);
+
+	// store the register 2 response we got from the device for later reference
+	memcpy(mse->reg2_native, tmp, REGISTER_2_LEN);
+
+	// determine device type
+	if (tmp[2] == 0x52 && tmp[3] == 0x00) {
+		dbg("    dev %d detect TM5", info->hdev);
+	} else {
+		dbg("    dev %d unknown 0x%2X%2X", info->hdev, tmp[2], tmp[3]);
+	}
 
 	// activate the device
+	// TODO determine how this step varies between native device types!
 	tmp[0] = 0xA5;
 	tmp[1] = 0x14;
 	tmp[2] = 0x00;
@@ -282,15 +364,13 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 	err = host_sync_cmd(info->hdev, COMMAND_TALK_1, tmp, &tmp_len);
 	if (err == HOSTERR_OK) {
 		if (tmp_len == 8) {
-			memcpy(mse->reg1_default, tmp, 8);
-			mse->extended = true;
+			memcpy(mse->reg1_native, tmp, 8);
 		} else {
 			dbg_err("kensington: dev %d bad reg1 len:", info->hdev, tmp_len);
 			return false;
 		}
 	} else if (err == HOSTERR_TIMEOUT) {
 		// expected with older devices
-		mse->extended = false;
 	} else {
 		dbg_err("kensington: dev %d bad reg1 err:%d", info->hdev, err);
 		return false;
@@ -341,10 +421,10 @@ static void hndl_talk(uint8_t hdev, host_err err, uint32_t cid, uint8_t reg,
 			// figure out where to send it and what format is expected
 			uint8_t drv_idx;
 			uint8_t data_out_len;
-			if (mice[i].reg2_flags[active] & 0x80) {
+			if (use_primary(active, i)) {
 				// primary
 				drv_idx = mice[i].drv_idx_pri;
-				data_out_len = mice[i].extended ? 3 : 2;
+				data_out_len = extended_supported(active, i) ? 3 : 2;
 			} else {
 				// secondary
 				drv_idx = mice[i].drv_idx_sec;
@@ -380,4 +460,27 @@ static ndev_handler kensington_handler = {
 void kensington_init(void)
 {
 	handler_register(&kensington_handler);
+
+	// try to pull device configuration information
+	uint8_t config[COMPUTER_COUNT] = {0};
+	config_read(CONFIG_OFFSET_KENS, config, COMPUTER_COUNT);
+
+	// inject mode based on configuration
+	for (uint8_t j = 0; j < COMPUTER_COUNT; j++) {
+		if (config[j] == 0x04) {
+			dbg("kensington: port %d emulate legacy", j + 1);
+			for (uint8_t i = 0; i < MAX_DEVICES; i++) {
+				mice[i].mode[j] = EMULATE_LEGACY;
+			}
+		} else if (config[j] == 0x05) {
+			dbg("kensington: port %d emulate extended", j + 1);
+			for (uint8_t i = 0; i < MAX_DEVICES; i++) {
+				mice[i].mode[j] = EMULATE_EXTENDED;
+			}
+		} else {
+			for (uint8_t i = 0; i < MAX_DEVICES; i++) {
+				mice[i].mode[j] = EMULATE_NATIVE;
+			}
+		}
+	}
 }

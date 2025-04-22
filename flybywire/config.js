@@ -32,8 +32,19 @@ const encodeBase = 0x30;
 
 function parseSettings(arr)
 {
+	// global settings
 	if (document.getElementById('cfg-buzzer').checked) {
 		arr[0] &= ~0x01;
+	}
+
+	// kensington emulation options
+	for (let i = 0; i <= 3; i++) {
+		let v = document.getElementById('cfg-kens-port' + (i + 1)).value;
+		if (v === "tm5") {
+			arr[32 + i] = 0xF5;
+		} else if (v === "tm4") {
+			arr[32 + i] = 0xF4;
+		}
 	}
 }
 
@@ -60,7 +71,7 @@ function insertFrameCheck(arr)
 	arr[i++] = (crc >>> 8) & 0xFF;
 	arr[i++] = (crc >>> 0) & 0xFF;
 
-	console.log("crc: " + (crc >>> 0).toString(16));
+	//console.log("crc: " + (crc >>> 0).toString(16));
 }
 
 function flashConfig()
