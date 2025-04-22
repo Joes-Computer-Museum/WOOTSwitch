@@ -71,7 +71,7 @@ config_err config_setup(void)
 
 	// setup the DMA channel to perform the reading from XIP into RAM
 	// perform CRC check against the data at the same time
-	dma_sniffer_enable(CONFIG_DMA_CHAN, 0, false);
+	dma_sniffer_enable(CONFIG_DMA_CHAN, 1, false);
 	dma_sniffer_set_data_accumulator(0xFFFFFFFF);
 	dma_channel_config dc = dma_channel_get_default_config(CONFIG_DMA_CHAN);
 	channel_config_set_dreq(&dc, DREQ_XIP_STREAM);
@@ -109,7 +109,7 @@ static config_err config_write_check(uint8_t* data)
 {
 	// run the data through DMA with the sniffer on to check validity
 	uint32_t tmp;
-	dma_sniffer_enable(CONFIG_DMA_CHAN, 0, false);
+	dma_sniffer_enable(CONFIG_DMA_CHAN, 1, false);
 	dma_sniffer_set_data_accumulator(0xFFFFFFFF);
 	dma_channel_config dc = dma_channel_get_default_config(CONFIG_DMA_CHAN);
 	channel_config_set_read_increment(&dc, true);

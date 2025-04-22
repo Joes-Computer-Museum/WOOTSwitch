@@ -34,16 +34,16 @@ function parseSettings(arr)
 {
 	// global settings
 	if (document.getElementById('cfg-buzzer').checked) {
-		arr[0] &= ~0x01;
+		arr[4] &= ~0x01;
 	}
 
 	// kensington emulation options
 	for (let i = 0; i <= 3; i++) {
 		let v = document.getElementById('cfg-kens-port' + (i + 1)).value;
 		if (v === "tm5") {
-			arr[32 + i] = 0xF5;
+			arr[32 + i] = 0x05;
 		} else if (v === "tm4") {
-			arr[32 + i] = 0xF4;
+			arr[32 + i] = 0x04;
 		}
 	}
 }
@@ -64,12 +64,11 @@ function insertFrameCheck(arr)
 	for (i = 0; i < configLength - 4; i++) {
 		crc = crc32_add_byte(table, crc, arr[i]);
 	}
-	crc = crc32_reverse(crc);
 
-	arr[i++] = (crc >>> 24) & 0xFF;
-	arr[i++] = (crc >>> 16) & 0xFF;
-	arr[i++] = (crc >>> 8) & 0xFF;
 	arr[i++] = (crc >>> 0) & 0xFF;
+	arr[i++] = (crc >>> 8) & 0xFF;
+	arr[i++] = (crc >>> 16) & 0xFF;
+	arr[i++] = (crc >>> 24) & 0xFF;
 
 	//console.log("crc: " + (crc >>> 0).toString(16));
 }
