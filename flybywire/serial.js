@@ -114,6 +114,16 @@ async function disconnect()
 	}
 }
 
+function restartDebug()
+{
+	if (! port) return;
+	if (window.confirm("Do you want to perform a restart to debug? (See the wiki for details)")) {
+		console.log("debug restart requested");
+		const a = new Uint8Array([0xF2]);
+		writer.write(a);
+	}
+}
+
 connectButton.addEventListener("click", async () => {
 	if (! port) {
 		connect();

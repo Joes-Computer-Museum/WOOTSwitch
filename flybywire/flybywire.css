@@ -44,21 +44,21 @@ h1 {
 	font-style: italic;
 }
 
-#macros {
+.controls {
 	display: flex;
 	margin: 0px auto;
 	width: 640px;
 	margin-top: 20px;
 	vertical-align: center;
 	justify-content: center;
+	gap: 10px;
 }
 
-#macros button {
+.controls button {
 	color: #ccc;
 	border: 1px solid #aaa;
 	border-radius: 5px;
 	background-color: #333;
-	margin-left: 10px;
 	height: 30px;
 }
 
