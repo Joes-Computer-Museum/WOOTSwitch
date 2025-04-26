@@ -115,12 +115,13 @@ static bool extended_supported(uint8_t comp, uint8_t dev)
 {
 	if (use_primary(comp, dev)) {
 		// using primary device
-		if (mice[dev].mode[comp] == EMULATE_NATIVE) {
-			// no change from native device, report what it supports
-			return mice[dev].reg1_native[0] != 0x00;
-		} else {
-			// emulating something else, report what it can do
-			return mice[dev].mode[active] != EMULATE_LEGACY;
+		switch (mice[dev].mode[comp]) {
+			case EMULATE_EXTENDED:
+				return true;
+			case EMULATE_LEGACY:
+				return false;
+			default:
+				return mice[dev].reg1_native[0] != 0x00;
 		}
 	} else {
 		// using secondary device, only device handler ID controls
@@ -138,6 +139,8 @@ static void drvr_reset(uint8_t comp, uint32_t ref)
 {
 	if (mice[ref].mode[comp] == EMULATE_LEGACY) {
 		// set register 2, register 1 does not exist for this device type
+		computer_data_set(comp, mice[ref].drv_idx_pri, 1,
+				NULL, 0, true);
 		computer_data_set(comp, mice[ref].drv_idx_pri, 2,
 				emul_legacy_reg2, REGISTER_2_LEN, true);
 		reg2_apply(comp, ref, emul_legacy_reg2);
@@ -153,6 +156,9 @@ static void drvr_reset(uint8_t comp, uint32_t ref)
 		if (mice[ref].reg1_native != 0x00) {
 			computer_data_set(comp, mice[ref].drv_idx_pri, 1,
 					mice[ref].reg1_native, REGISTER_1_LEN, true);
+		} else {
+			computer_data_set(comp, mice[ref].drv_idx_pri, 1,
+					NULL, 0, true);
 		}
 		computer_data_set(comp, mice[ref].drv_idx_pri, 2,
 				mice[ref].reg2_native, REGISTER_2_LEN, true);
@@ -216,21 +222,44 @@ static void drvr_sec_set_handle(uint8_t comp, uint32_t ref, uint8_t hndl)
 static void drvr_talk(uint8_t comp, uint32_t ref, uint8_t reg, bool pri)
 {
 	if (active != comp) return;
+	if (use_primary(comp, ref) != pri) return;
 
 	uint8_t drv_idx = pri ? mice[ref].drv_idx_pri : mice[ref].drv_idx_sec;
 	bool extended = extended_supported(comp, ref)
 			&& (pri ? true : mice[ref].dhi[comp] == 0x04);
 
+	uint8_t data[5];
+	uint8_t len = 0;
 	if (reg == 0 && xSemaphoreTake(mice[ref].sem, portMAX_DELAY)) {
 		if (mice[ref].pending) {
-			uint8_t data[5];
+
 			util_mouse_encode(data, mice[ref].x, mice[ref].y, mice[ref].buttons);
-			uint8_t len = extended ? 3 : 2;
+			len = (extended || pri) ? 3 : 2;
 			if (computer_data_offer(active, drv_idx, 0, data, len)) {
 				mice[ref].pending = false;
 			}
 		}
 		xSemaphoreGive(mice[ref].sem);
+
+		if (pri) {
+			if (len == 3) {
+				dbg("kens-pri (tlk): %d %d %d", data[0], data[1], data[2]);
+			} else if (len == 2) {
+				dbg("kens-pri (tlk): %d %d", data[0], data[1]);
+			}
+		} else {
+			if (len == 3) {
+				dbg("kens-sec (tlk): %d %d %d", data[0], data[1], data[2]);
+			} else if (len == 2) {
+				dbg("kens-sec (tlk): %d %d", data[0], data[1]);
+			}
+		}
+	} else {
+		if (pri) {
+			dbg("kens-pri (tlk) skip");
+		} else {
+			dbg("kens-sec (tlk) skip");
+		}
 	}
 }
 
@@ -278,6 +307,10 @@ static void drvr_pri_listen(uint8_t comp, uint32_t ref, uint8_t reg,
 	// store the updated register information for talking back
 	computer_data_set(comp, mice[ref].drv_idx_pri, 2,
 			reg2, REGISTER_2_LEN, true);
+
+	// report messaging
+	dbg("kens L2 %02X%02X%02X%02X%02X%02X%02X",
+			reg2[0], reg2[1], reg2[2], reg2[3], reg2[4], reg2[5], reg2[6]);
 }
 
 static dev_driver primary_driver = {
@@ -320,7 +353,7 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 	uint8_t tmp_len;
 	err = host_sync_cmd(info->hdev, COMMAND_TALK_2, tmp, &tmp_len);
 	if (err != HOSTERR_OK || tmp_len != REGISTER_2_LEN) {
-		dbg_err("kensington: dev %d bad reg2 err:%d", info->hdev, err);
+		dbg_err("kens: dev %d bad reg2 err:%d", info->hdev, err);
 		return false;
 	}
 
@@ -356,7 +389,7 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 	tmp_len = 8;
 	err = host_sync_cmd(info->hdev, COMMAND_LISTEN_2, tmp, &tmp_len);
 	if (err != HOSTERR_OK) {
-		dbg_err("kensington: dev %d can't activate err:%d", info->hdev, err);
+		dbg_err("kens: dev %d can't activate err:%d", info->hdev, err);
 		return false;
 	}
 
@@ -366,13 +399,13 @@ static bool hndl_interview(volatile ndev_info *info, bool (*handle_change)(uint8
 		if (tmp_len == 8) {
 			memcpy(mse->reg1_native, tmp, 8);
 		} else {
-			dbg_err("kensington: dev %d bad reg1 len:", info->hdev, tmp_len);
+			dbg_err("kens: dev %d bad reg1 len:", info->hdev, tmp_len);
 			return false;
 		}
 	} else if (err == HOSTERR_TIMEOUT) {
 		// expected with older devices
 	} else {
-		dbg_err("kensington: dev %d bad reg1 err:%d", info->hdev, err);
+		dbg_err("kens: dev %d bad reg1 err:%d", info->hdev, err);
 		return false;
 	}
 
@@ -407,6 +440,20 @@ static void hndl_talk(uint8_t hdev, host_err err, uint32_t cid, uint8_t reg,
 		uint8_t buttons;
 		util_mouse_decode(data, data_len, &xt, &yt, &buttons);
 
+		// figure out where to send it and what format is expected
+		uint8_t drv_idx;
+		uint8_t data_out_len;
+
+		if (use_primary(active, i)) {
+			// primary
+			drv_idx = mice[i].drv_idx_pri;
+			data_out_len = extended_supported(active, i) ? 3 : 3;
+		} else {
+			// secondary
+			drv_idx = mice[i].drv_idx_sec;
+			data_out_len = mice[i].dhi[active] == 0x04 ? 3 : 2;
+		}
+
 		if (xSemaphoreTake(mice[i].sem, portMAX_DELAY)) {
 			// include any pending motion data
 			if (mice[i].pending) {
@@ -417,19 +464,6 @@ static void hndl_talk(uint8_t hdev, host_err err, uint32_t cid, uint8_t reg,
 			// encode the resulting output
 			uint8_t data_out[5];
 			util_mouse_encode(data_out, xt, yt, buttons);
-
-			// figure out where to send it and what format is expected
-			uint8_t drv_idx;
-			uint8_t data_out_len;
-			if (use_primary(active, i)) {
-				// primary
-				drv_idx = mice[i].drv_idx_pri;
-				data_out_len = extended_supported(active, i) ? 3 : 2;
-			} else {
-				// secondary
-				drv_idx = mice[i].drv_idx_sec;
-				data_out_len = mice[i].dhi[active] == 0x04 ? 3 : 2;
-			}
 
 			// try to send data, or if send can't be done, store
 			if (computer_data_offer(active, drv_idx, 0,
@@ -442,14 +476,32 @@ static void hndl_talk(uint8_t hdev, host_err err, uint32_t cid, uint8_t reg,
 				mice[i].buttons = buttons;
 			}
 			xSemaphoreGive(mice[i].sem);
-		}
 
-		dbg("kensington: %d %d %d", data[0], data[1], data[2]);
+			if (drv_idx == mice[i].drv_idx_pri) {
+				if (data_out_len == 3) {
+					dbg("kens-pri: %d %d %d", data[0], data[1], data[2]);
+				} else if (data_out_len == 2) {
+					dbg("kens-pri: %d %d", data[0], data[1]);
+				}
+			} else {
+				if (data_out_len == 3) {
+					dbg("kens-sec: %d %d %d", data[0], data[1], data[2]);
+				} else if (data_out_len == 2) {
+					dbg("kens-sec: %d %d", data[0], data[1]);
+				}
+			}
+		} else {
+			if (drv_idx == mice[i].drv_idx_pri) {
+				dbg("kens-pri: skip");
+			} else {
+				dbg("kens-sec: skip");
+			}
+		}
 	}
 }
 
 static ndev_handler kensington_handler = {
-	.name = "kensington",
+	.name = "kens",
 	.accept_noop_talks = false,
 	.interview_func = hndl_interview,
 	.talk_func = hndl_talk,
@@ -468,12 +520,12 @@ void kensington_init(void)
 	// inject mode based on configuration
 	for (uint8_t j = 0; j < COMPUTER_COUNT; j++) {
 		if (config[j] == 0x04) {
-			dbg("kensington: port %d emulate legacy", j + 1);
+			dbg("kens: port %d emulate legacy", j + 1);
 			for (uint8_t i = 0; i < MAX_DEVICES; i++) {
 				mice[i].mode[j] = EMULATE_LEGACY;
 			}
 		} else if (config[j] == 0x05) {
-			dbg("kensington: port %d emulate extended", j + 1);
+			dbg("kens: port %d emulate extended", j + 1);
 			for (uint8_t i = 0; i < MAX_DEVICES; i++) {
 				mice[i].mode[j] = EMULATE_EXTENDED;
 			}
