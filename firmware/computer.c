@@ -98,7 +98,7 @@ typedef struct {
 	uint8_t device_count;
 
 	volatile uint16_t srq;             // queued service requests, bit flags by addr
-	volatile uint64_t time;            // multiple use, but mostly when phase started
+	volatile uint32_t time;            // multiple use, but mostly when phase started
 	volatile bool collision;           // was the previous Talk a collision?
 
 	comp_device *dev;         // caches last active device
@@ -112,6 +112,7 @@ typedef struct {
 	uint32_t dbg_atn_shrt;     // attention from PIO directly
 	uint32_t dbg_rst;          // reset conditions
 	uint32_t dbg_abrt;         // any incomplete termination (these are ok)
+	uint32_t dbg_abrt_time;    // low 32 bit time of the last abort
 	uint32_t dbg_err;          // incomplete termination due to coding bugs
 	uint32_t dbg_lock;         // unable to send due to data semaphore
 } computer_t;
@@ -216,8 +217,9 @@ static void dev_pio_atn_start(uint8_t i)
 	bus_atn_dev_pio_config(&pc, off_pio_atn, computer_di_pins[i]);
 	pio_sm_init(COMPUTER_PIO, i, off_pio_atn, &pc);
 	pio_sm_put(COMPUTER_PIO, i, PIO_ATN_MIN);
+
+	computers[i].time = time_us_32();
 	pio_sm_set_enabled(COMPUTER_PIO, i, true);
-	computers[i].time = time_us_64();
 }
 
 /*
@@ -229,8 +231,9 @@ static void dev_pio_command_start(uint8_t i)
 	bus_rx_dev_pio_config(&pc, off_pio_rx, computer_do_pins[i], computer_di_pins[i]);
 	pio_sm_init(COMPUTER_PIO, i, off_pio_rx + PIO_CMD_OFFSET, &pc);
 	pio_sm_put(COMPUTER_PIO, i, 7);
+
+	computers[i].time = time_us_32();
 	pio_sm_set_enabled(COMPUTER_PIO, i, true);
-	computers[i].time = time_us_64();
 }
 
 /*
@@ -243,8 +246,9 @@ static void dev_pio_tx_start(uint8_t i)
 	pio_sm_config pc;
 	bus_tx_dev_pio_config(&pc, off_pio_tx, computer_do_pins[i], computer_di_pins[i]);
 	pio_sm_init(COMPUTER_PIO, i, off_pio_tx, &pc);
+
+	computers[i].time = time_us_32();
 	pio_sm_set_enabled(COMPUTER_PIO, i, true);
-	computers[i].time = time_us_64();
 }
 
 /*
@@ -268,8 +272,8 @@ static void dev_pio_rx_start(uint8_t i)
 			8,
 			true); // start
 
+	computers[i].time = time_us_32();
 	pio_sm_set_enabled(COMPUTER_PIO, i, true);
-	computers[i].time = time_us_64();
 }
 
 /*
@@ -292,7 +296,7 @@ static void dev_pio_stop(uint8_t i)
 static bool setup_gpio_isr(uint8_t i)
 {
 	// if waiting for Tlt then we need to know when it starts
-	computers[i].time = time_us_64();
+	computers[i].time = time_us_32();
 	uint32_t const pin = computer_di_pins[i];
 	if (gpio_get(pin)) {
 		return false;
@@ -556,13 +560,13 @@ static void computer_gpio_isr(void)
 
 		switch (computers[i].phase) {
 		case PHASE_ATTENTION:
-			uint32_t td = time_us_64() - computers[i].time;
+			uint32_t td = time - ctime;
 			if (td > TIME_RESET_THRESH) {
 				// stop interrupt processing, note reset
+				computers[i].status = STATUS_RESET;
 				dev_pio_atn_start(i);
 				computers[i].dbg_rst++;
 				computers[i].phase = PHASE_IDLE;
-				computers[i].status = STATUS_RESET;
 				if (task_handle != NULL) {
 					vTaskNotifyGiveFromISR(task_handle, NULL);
 				}
@@ -629,6 +633,7 @@ static void computer_pio_isr(void)
 				dev_pio_stop(i);
 				dev_pio_atn_start(i);
 				computers[i].dbg_abrt++;
+				computers[i].dbg_abrt_time = time_us_32();
 				computers[i].phase = PHASE_IDLE;
 			}
 			if (srq) {
