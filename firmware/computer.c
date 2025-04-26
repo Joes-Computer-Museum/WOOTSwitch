@@ -560,7 +560,7 @@ static void computer_gpio_isr(void)
 
 		switch (computers[i].phase) {
 		case PHASE_ATTENTION:
-			uint32_t td = time - ctime;
+			uint32_t td = time_us_32() - computers[i].time;
 			if (td > TIME_RESET_THRESH) {
 				// stop interrupt processing, note reset
 				computers[i].status = STATUS_RESET;
