@@ -234,6 +234,7 @@ static void drvr_switch(uint8_t comp)
 static void drvr_listen(uint8_t comp, uint32_t ref, uint8_t reg,
 		volatile uint8_t* data, uint8_t length)
 {
+	dbg("kbd L%d %d", reg, length);
 	if (reg == 2 && length == 2) {
 		// only thing we let the computer change is LED state
 		uint16_t *reg2 = &keyboards[ref].mem[comp].reg2;
