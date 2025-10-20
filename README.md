@@ -5,7 +5,7 @@ Hootswitch is a prototype [ADB](https://en.wikipedia.org/wiki/Apple_Desktop_Bus)
 multiplexer that allows peripherals (inluding keyboards and mice) to be shared
 across up to four retro computers.
 
-![Hootswitch 2024a](extras/hootswitch.jpg)
+![Hootswitch 2024a](extras/wootswitch.jpg)
 
 This project has two parts: an example hardware design and the firmware,
 located in their respective folders in this repo.
