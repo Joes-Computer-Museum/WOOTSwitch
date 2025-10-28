@@ -652,6 +652,10 @@
     [
       "496d9e94-0c96-482e-96ba-4fa40cf02c6f",
       "WOOTSwitch-computers"
+    ],
+    [
+      "dd75d2c7-8b23-4ce3-945f-6516cf1b7175",
+      "WOOTSwitch_Power"
     ]
   ],
   "text_variables": {}

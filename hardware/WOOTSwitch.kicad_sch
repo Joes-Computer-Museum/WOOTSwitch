@@ -15915,6 +15915,48 @@
 			)
 		)
 	)
+	(sheet
+		(at 129.032 225.298)
+		(size 12.7 4.572)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "dd75d2c7-8b23-4ce3-945f-6516cf1b7175")
+		(property "Sheetname" "WOOTSwitch_Power"
+			(at 129.032 224.5864 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "WOOTSwitch_Power.kicad_sch"
+			(at 129.032 230.4546 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "WOOTSwitch"
+				(path "/b47c0368-c762-4e4f-89b1-8c49875ea556"
+					(page "3")
+				)
+			)
+		)
+	)
 	(sheet_instances
 		(path "/"
 			(page "1")
