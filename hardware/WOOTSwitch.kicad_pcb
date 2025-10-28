@@ -8799,6 +8799,17 @@
 			(uuid "f7a85153-2bba-4c39-9bf0-6a5144ff9204")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/c-5749181-1-a-3d.stp"
+			(offset
+				(xyz 0 0 6.2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -180)
+			)
+		)
 	)
 	(footprint "Package_TO_SOT_SMD:SOT-23"
 		(layer "F.Cu")
@@ -9762,6 +9773,17 @@
 			(uuid "98c840a6-8f37-4d45-8daf-88f27ad0ab12")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/c-5749181-1-a-3d.stp"
+			(offset
+				(xyz 0 0 6.2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -180)
+			)
+		)
 	)
 	(footprint "LED_SMD:LED_0805_2012Metric"
 		(layer "F.Cu")
@@ -10814,6 +10836,17 @@
 			(uuid "e098d766-956b-4cc7-8e3e-8e9866a3833c")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/c-1825910-6-c-3d.stp"
+			(offset
+				(xyz 0 0 5)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -90)
+			)
+		)
 	)
 	(footprint "Resistor_SMD:R_0603_1608Metric"
 		(layer "F.Cu")
@@ -11211,6 +11244,17 @@
 			(uuid "8de947cc-3f6b-4228-ab9b-08e9d17bf40c")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/c-5749181-1-a-3d.stp"
+			(offset
+				(xyz 0 0 6.2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -180)
+			)
+		)
 	)
 	(footprint "LED_SMD:LED_0805_2012Metric"
 		(layer "F.Cu")
@@ -11986,7 +12030,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "ab63fc0b-ec69-4017-b774-9fa41d24a0d1")
@@ -11998,7 +12042,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "aa1205dd-d38d-498d-9426-bb3d4974bdfb")
@@ -12265,7 +12309,7 @@
 			(uuid "6aa72705-0def-4a5f-8b4c-4f13541fde7c")
 		)
 		(embedded_fonts no)
-		(model "${KICAD6_3DMODEL_DIR}/Connector_BarrelJack.3dshapes/BarrelJack_CUI_PJ-063AH_Horizontal_CircularHoles.wrl"
+		(model "${KICAD9_3DMODEL_DIR}/Connector_BarrelJack.3dshapes/BarrelJack_CUI_PJ-063AH_Horizontal.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -14562,7 +14606,7 @@
 			(net 47 "/LED1")
 			(pinfunction "GPIO0")
 			(pintype "bidirectional")
-			(uuid "2eb9182c-8b19-4b2d-b0e8-919248099b36")
+			(uuid "0c730270-bd51-4679-94d9-e347466862b6")
 		)
 		(pad "2" thru_hole oval
 			(at -8.89 -21.59 180)
@@ -14585,7 +14629,7 @@
 			(net 48 "/LED2")
 			(pinfunction "GPIO1")
 			(pintype "bidirectional")
-			(uuid "03571d87-1027-4593-9f05-94923312f85f")
+			(uuid "91794490-7a6a-4dbb-903a-be662284aa05")
 		)
 		(pad "3" thru_hole rect
 			(at -8.89 -19.05 180)
@@ -14608,7 +14652,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "b85afa8d-11bc-4fa5-b61c-72d58228d068")
+			(uuid "8a07f328-824b-4e42-90c3-6eb7709cf6d7")
 		)
 		(pad "4" thru_hole oval
 			(at -8.89 -16.51 180)
@@ -14631,7 +14675,7 @@
 			(net 49 "/LED3")
 			(pinfunction "GPIO2")
 			(pintype "bidirectional")
-			(uuid "5d7f6aa1-c2e5-493b-a6f0-dd920360e7cd")
+			(uuid "5d1112eb-a282-45b7-aefb-64d42a22703f")
 		)
 		(pad "5" thru_hole oval
 			(at -8.89 -13.97 180)
@@ -14654,7 +14698,7 @@
 			(net 50 "/LED4")
 			(pinfunction "GPIO3")
 			(pintype "bidirectional")
-			(uuid "7a785680-a1fc-483e-a796-6796bfa5b0f7")
+			(uuid "221b7167-e924-4fb0-86c6-55887fdc75e7")
 		)
 		(pad "6" thru_hole oval
 			(at -8.89 -11.43 180)
@@ -14677,7 +14721,7 @@
 			(net 51 "/LED5")
 			(pinfunction "GPIO4")
 			(pintype "bidirectional")
-			(uuid "09e753d1-315d-40b6-9841-abc18b7068d4")
+			(uuid "5eee5975-89ac-4fa3-9d1a-c0e5d2dd1fa2")
 		)
 		(pad "7" thru_hole oval
 			(at -8.89 -8.89 180)
@@ -14700,7 +14744,7 @@
 			(net 52 "/LED6")
 			(pinfunction "GPIO5")
 			(pintype "bidirectional")
-			(uuid "e3b81565-a0d5-4879-8e13-ea8e4037f499")
+			(uuid "617992ce-56bc-495c-bdd7-4404b96a6720")
 		)
 		(pad "8" thru_hole rect
 			(at -8.89 -6.35 180)
@@ -14723,7 +14767,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "9cda99f6-51fe-44e5-8229-7e983696c75b")
+			(uuid "7d5b2088-cea9-4789-81fb-4d336033688b")
 		)
 		(pad "9" thru_hole oval
 			(at -8.89 -3.81 180)
@@ -14746,7 +14790,7 @@
 			(net 67 "/SWITCH")
 			(pinfunction "GPIO6")
 			(pintype "bidirectional")
-			(uuid "8a2095b5-ce99-45cc-8c11-9146dbf00190")
+			(uuid "cb04440d-bbd5-45a7-add5-1396309d7cfa")
 		)
 		(pad "10" thru_hole oval
 			(at -8.89 -1.27 180)
@@ -14769,7 +14813,7 @@
 			(net 62 "/BUZZER")
 			(pinfunction "GPIO7")
 			(pintype "bidirectional")
-			(uuid "d8989cce-6b76-4012-a159-42f3544fe6ca")
+			(uuid "e5d43071-9f3d-4e2c-b913-23455277f413")
 		)
 		(pad "11" thru_hole oval
 			(at -8.89 1.27 180)
@@ -14792,7 +14836,7 @@
 			(net 78 "/C4_PSW")
 			(pinfunction "GPIO8")
 			(pintype "bidirectional")
-			(uuid "b9b343d7-3f41-4dd7-bd96-80f148be5ae1")
+			(uuid "ca77fdb2-9001-487e-8b79-b05750743e91")
 		)
 		(pad "12" thru_hole oval
 			(at -8.89 3.81 180)
@@ -14815,7 +14859,7 @@
 			(net 77 "/C4_DO")
 			(pinfunction "GPIO9")
 			(pintype "bidirectional")
-			(uuid "2e7cfe37-a9e2-442f-aa6d-957cc9a162e5")
+			(uuid "0090994e-a302-4f57-91b6-0495e9da0e3a")
 		)
 		(pad "13" thru_hole rect
 			(at -8.89 6.35 180)
@@ -14838,7 +14882,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "c1bb7170-7783-426f-afbd-822c6d13057f")
+			(uuid "6b8e8a29-8a7b-482f-82a8-e085e1dcba10")
 		)
 		(pad "14" thru_hole oval
 			(at -8.89 8.89 180)
@@ -14861,7 +14905,7 @@
 			(net 79 "/C4_DI")
 			(pinfunction "GPIO10")
 			(pintype "bidirectional")
-			(uuid "e49c0ed0-f706-44bb-b423-00b3816d7368")
+			(uuid "22a042dd-1eec-4af5-8890-350debb07b10")
 		)
 		(pad "15" thru_hole oval
 			(at -8.89 11.43 180)
@@ -14884,7 +14928,7 @@
 			(net 75 "/C3_PSW")
 			(pinfunction "GPIO11")
 			(pintype "bidirectional")
-			(uuid "bfb2fd19-1115-4b1b-8630-b59fe79ee65a")
+			(uuid "239bb20d-b77b-4f3f-9edd-23639184973b")
 		)
 		(pad "16" thru_hole oval
 			(at -8.89 13.97 180)
@@ -14907,7 +14951,7 @@
 			(net 74 "/C3_DO")
 			(pinfunction "GPIO12")
 			(pintype "bidirectional")
-			(uuid "27fa849f-1afa-4107-acc8-b03d60924edc")
+			(uuid "88dbbf69-0804-49e0-b698-c63cac83bccc")
 		)
 		(pad "17" thru_hole oval
 			(at -8.89 16.51 180)
@@ -14930,7 +14974,7 @@
 			(net 76 "/C3_DI")
 			(pinfunction "GPIO13")
 			(pintype "bidirectional")
-			(uuid "95354bf1-5a5b-4bd2-8b0d-37f0585f4d7c")
+			(uuid "5cb59cdc-b076-4dbb-96fe-24a927e19924")
 		)
 		(pad "18" thru_hole rect
 			(at -8.89 19.05 180)
@@ -14953,7 +14997,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "291e0ae4-c937-4c14-84fd-5a3a47862089")
+			(uuid "a76a2000-917d-4d4e-b095-173eb2a45d07")
 		)
 		(pad "19" thru_hole oval
 			(at -8.89 21.59 180)
@@ -14976,7 +15020,7 @@
 			(net 72 "/C2_PSW")
 			(pinfunction "GPIO14")
 			(pintype "bidirectional")
-			(uuid "91a259af-6eae-44d4-b960-2ce08a5cda0d")
+			(uuid "7963552f-121b-423e-b05b-e339b7544e7e")
 		)
 		(pad "20" thru_hole oval
 			(at -8.89 24.13 180)
@@ -14999,7 +15043,7 @@
 			(net 71 "/C2_DO")
 			(pinfunction "GPIO15")
 			(pintype "bidirectional")
-			(uuid "49dd3f6b-fbbb-47bc-923c-a1f73ff80def")
+			(uuid "eb126fed-739b-4220-ab15-2663d7af78f9")
 		)
 		(pad "21" thru_hole oval
 			(at 8.89 24.13 180)
@@ -15022,7 +15066,7 @@
 			(net 73 "/C2_DI")
 			(pinfunction "GPIO16")
 			(pintype "bidirectional")
-			(uuid "f6ab9a09-4ce2-42b0-b744-713c7215b0eb")
+			(uuid "d452056d-98c6-4226-9876-2673acf603a0")
 		)
 		(pad "22" thru_hole oval
 			(at 8.89 21.59 180)
@@ -15045,7 +15089,7 @@
 			(net 69 "/C1_PSW")
 			(pinfunction "GPIO17")
 			(pintype "bidirectional")
-			(uuid "7af670de-9350-4326-88ba-601d5ad5144f")
+			(uuid "65004baf-d36d-40e8-b3f4-093bf6886834")
 		)
 		(pad "23" thru_hole rect
 			(at 8.89 19.05 180)
@@ -15068,7 +15112,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "cdf47e66-4108-43b8-9b82-1ffccf1bcc95")
+			(uuid "d77ed411-2c8e-4c0f-80ad-7955f043d133")
 		)
 		(pad "24" thru_hole oval
 			(at 8.89 16.51 180)
@@ -15091,7 +15135,7 @@
 			(net 68 "/C1_DO")
 			(pinfunction "GPIO18")
 			(pintype "bidirectional")
-			(uuid "5604b618-1511-4a2d-82af-94a6c1eff91c")
+			(uuid "17350a43-95da-4cb7-a1a2-79561c104d31")
 		)
 		(pad "25" thru_hole oval
 			(at 8.89 13.97 180)
@@ -15114,7 +15158,7 @@
 			(net 70 "/C1_DI")
 			(pinfunction "GPIO19")
 			(pintype "bidirectional")
-			(uuid "9ed84171-7628-42ad-ad00-022c6edd64cf")
+			(uuid "af6d13db-2d53-42ca-bc29-ed9655fb34a3")
 		)
 		(pad "26" thru_hole oval
 			(at 8.89 11.43 180)
@@ -15137,7 +15181,7 @@
 			(net 20 "Net-(J11-Pin_2)")
 			(pinfunction "GPIO20")
 			(pintype "bidirectional")
-			(uuid "2deaa4b3-395d-4941-af08-0559d2567210")
+			(uuid "1ee2b83b-414c-4b2f-8c5a-318ca9e8e422")
 		)
 		(pad "27" thru_hole oval
 			(at 8.89 8.89 180)
@@ -15160,7 +15204,7 @@
 			(net 21 "Net-(J11-Pin_1)")
 			(pinfunction "GPIO21")
 			(pintype "bidirectional")
-			(uuid "682abd64-b7cd-45fe-93b7-df7fff12af42")
+			(uuid "a35904a2-aaed-4280-a117-ed7d1d47e0f2")
 		)
 		(pad "28" thru_hole rect
 			(at 8.89 6.35 180)
@@ -15183,7 +15227,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "789caeac-89f1-4a30-9406-7de47c16f794")
+			(uuid "5aef49df-9a09-4a71-8153-e465be6876d4")
 		)
 		(pad "29" thru_hole oval
 			(at 8.89 3.81 180)
@@ -15206,7 +15250,7 @@
 			(net 81 "unconnected-(U1-GPIO22-Pad29)_1")
 			(pinfunction "GPIO22")
 			(pintype "bidirectional+no_connect")
-			(uuid "5fed0835-51b6-48ff-babe-1b02ec955699")
+			(uuid "b4679c68-e4ea-428a-acb6-c839556a1a9b")
 		)
 		(pad "30" thru_hole oval
 			(at 8.89 1.27 180)
@@ -15229,7 +15273,7 @@
 			(net 82 "unconnected-(U1-RUN-Pad30)_1")
 			(pinfunction "RUN")
 			(pintype "input+no_connect")
-			(uuid "6630600a-bbe5-4ccf-a689-2afacc33459b")
+			(uuid "e4c4ab92-9254-41f4-91e3-d61667703668")
 		)
 		(pad "31" thru_hole oval
 			(at 8.89 -1.27 180)
@@ -15252,7 +15296,7 @@
 			(net 45 "/A_DO")
 			(pinfunction "GPIO26_ADC0")
 			(pintype "bidirectional")
-			(uuid "dbaebd4f-39ad-45d8-a5db-b76e4c6197f3")
+			(uuid "77c73645-543e-4afb-8deb-166d3b63e7d9")
 		)
 		(pad "32" thru_hole oval
 			(at 8.89 -3.81 180)
@@ -15275,7 +15319,7 @@
 			(net 7 "/A_DI")
 			(pinfunction "GPIO27_ADC1")
 			(pintype "bidirectional")
-			(uuid "ec43f059-ab33-4ae6-9191-63ba171114f2")
+			(uuid "7dfb9c1a-f0ad-4d23-94a5-7fec29b752d5")
 		)
 		(pad "33" thru_hole rect
 			(at 8.89 -6.35 180)
@@ -15298,7 +15342,7 @@
 			(net 2 "GND")
 			(pinfunction "AGND")
 			(pintype "power_in")
-			(uuid "988fe5d6-d644-4bc2-b5fc-1939eeb2c917")
+			(uuid "5f5781cf-2f6e-47e1-9a81-152f2d18e1e5")
 		)
 		(pad "34" thru_hole oval
 			(at 8.89 -8.89 180)
@@ -15321,7 +15365,7 @@
 			(net 66 "unconnected-(U1-GPIO28_ADC2-Pad34)")
 			(pinfunction "GPIO28_ADC2")
 			(pintype "bidirectional+no_connect")
-			(uuid "1f4ef756-ace0-4feb-8f0d-b4840b9d4f4f")
+			(uuid "a9ef9c74-31d1-4849-a80f-b97ff251f2ae")
 		)
 		(pad "35" thru_hole oval
 			(at 8.89 -11.43 180)
@@ -15344,7 +15388,7 @@
 			(net 80 "unconnected-(U1-ADC_VREF-Pad35)_1")
 			(pinfunction "ADC_VREF")
 			(pintype "unspecified+no_connect")
-			(uuid "29465294-45dc-473c-80c3-9aaf44aee10d")
+			(uuid "2b3cfa4b-76b4-471e-a4d5-133e5010f7a9")
 		)
 		(pad "36" thru_hole oval
 			(at 8.89 -13.97 180)
@@ -15367,7 +15411,7 @@
 			(net 46 "+3.3V")
 			(pinfunction "3V3")
 			(pintype "unspecified")
-			(uuid "db6bfb06-655b-4e2e-8730-4265546af303")
+			(uuid "f50cecbe-c103-48df-be19-b4007007f231")
 		)
 		(pad "37" thru_hole oval
 			(at 8.89 -16.51 180)
@@ -15390,7 +15434,7 @@
 			(net 83 "unconnected-(U1-3V3_EN-Pad37)")
 			(pinfunction "3V3_EN")
 			(pintype "input+no_connect")
-			(uuid "d1022294-6680-43d3-91d0-5935d169c65d")
+			(uuid "1a577667-bac0-4790-93fe-cc9863b41d54")
 		)
 		(pad "38" thru_hole rect
 			(at 8.89 -19.05 180)
@@ -15413,7 +15457,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "bidirectional")
-			(uuid "ba31a0a3-2701-4b04-950a-7ea2a96c50a9")
+			(uuid "5f97e9da-d5f5-4b7a-9548-be05098d258b")
 		)
 		(pad "39" thru_hole oval
 			(at 8.89 -21.59 180)
@@ -15436,7 +15480,7 @@
 			(net 13 "Net-(D7-K)")
 			(pinfunction "VSYS")
 			(pintype "unspecified")
-			(uuid "40c551ef-9fda-4965-bccf-d9b9ea2cbfa4")
+			(uuid "984de592-f25d-403b-bcad-5b02a5ca998e")
 		)
 		(pad "40" thru_hole oval
 			(at 8.89 -24.13 180)
@@ -15459,9 +15503,20 @@
 			(net 19 "Net-(J10-Pin_3)")
 			(pinfunction "VBUS")
 			(pintype "unspecified")
-			(uuid "a325a5cb-9c47-4662-9d57-b3dfadc1bbf0")
+			(uuid "f047aaec-effc-4ba1-b757-164753474c52")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/Pico-R3.step"
+			(offset
+				(xyz -10.5 -25.5 0.5)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -0)
+			)
+		)
 	)
 	(footprint "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
 		(layer "F.Cu")
@@ -21104,6 +21159,17 @@
 			(uuid "f5f81cb9-e2f4-4c39-8362-396ed12828a1")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/c-5749181-1-a-3d.stp"
+			(offset
+				(xyz 0 0 6.2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -180)
+			)
+		)
 	)
 	(footprint "Package_TO_SOT_SMD:SOT-23"
 		(layer "F.Cu")
@@ -23398,6 +23464,17 @@
 			(uuid "827773ba-c0ca-406f-9eba-a004f141f9e7")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/c-5749181-1-a-3d.stp"
+			(offset
+				(xyz 0 0 6.2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -180)
+			)
+		)
 	)
 	(footprint "Fuse:Fuse_Littelfuse_372_D8.50mm"
 		(layer "F.Cu")
@@ -26188,6 +26265,17 @@
 			(uuid "bb7b5518-3975-476f-bd1b-df1f4e1b78c8")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/c-5749181-1-a-3d.stp"
+			(offset
+				(xyz 0 0 6.2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -180)
+			)
+		)
 	)
 	(footprint "Resistor_SMD:R_0603_1608Metric"
 		(layer "F.Cu")
