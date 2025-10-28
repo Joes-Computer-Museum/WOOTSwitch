@@ -5,7 +5,10 @@
 	(uuid "91481d79-a6c6-4262-aea4-17579079a72b")
 	(paper "USLetter" portrait)
 	(title_block
-		(title "hootswitch-computers")
+		(title "WOOTSwitch")
+		(date "2025-10-28")
+		(rev "2025.10")
+		(company "Joe's Computer Museum")
 	)
 	(lib_symbols
 		(symbol "Device:C"

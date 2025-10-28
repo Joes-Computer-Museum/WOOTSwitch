@@ -49,7 +49,7 @@
         "silk_text_upright": false,
         "zones": {
           "45_degree_only": false,
-          "min_clearance": 0.5
+          "min_clearance": 0.0
         }
       },
       "diff_pair_dimensions": [
@@ -476,7 +476,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "hootswitch.kicad_pro",
+    "filename": "WOOTSwitch.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -651,7 +651,7 @@
     ],
     [
       "496d9e94-0c96-482e-96ba-4fa40cf02c6f",
-      "hootswitch-computers"
+      "WOOTSwitch-computers"
     ]
   ],
   "text_variables": {}
