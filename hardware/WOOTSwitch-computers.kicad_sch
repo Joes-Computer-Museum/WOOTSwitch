@@ -4364,7 +4364,7 @@
 				)
 			)
 		)
-		(property "Value" "100N"
+		(property "Value" "100nF"
 			(at 42.926 245.11 90)
 			(effects
 				(font
@@ -5465,7 +5465,7 @@
 				)
 			)
 		)
-		(property "Value" "100N"
+		(property "Value" "100nF"
 			(at 63.246 245.11 90)
 			(effects
 				(font
@@ -6079,7 +6079,7 @@
 				)
 			)
 		)
-		(property "Value" "100N"
+		(property "Value" "100nF"
 			(at 73.406 245.11 90)
 			(effects
 				(font
@@ -8176,7 +8176,7 @@
 				)
 			)
 		)
-		(property "Value" "100N"
+		(property "Value" "100nF"
 			(at 53.086 245.11 90)
 			(effects
 				(font
