@@ -1,14 +1,18 @@
-hootswitch
+WOOTSwitch
 ==========
 
-Hootswitch is a prototype [ADB](https://en.wikipedia.org/wiki/Apple_Desktop_Bus)
+WOOTSwitch is a hardware fork of hootswitch by saybur.
+WOOTSwitch is a prototype [ADB](https://en.wikipedia.org/wiki/Apple_Desktop_Bus)
 multiplexer that allows peripherals (inluding keyboards and mice) to be shared
 across up to four retro computers.
 
-![Hootswitch 2024a](extras/wootswitch.jpg)
-
-This project has two parts: an example hardware design and the firmware,
+This project has two parts: an hardware design and the firmware,
 located in their respective folders in this repo.
+
+The hardware design uses Raspberry Pi Pico design files found here:
+https://github.com/HeadBoffin/RP_Silicon_KiCad
+
+![WOOTSwitch](extras/wootswitch.jpg)
 
 Status
 ------
