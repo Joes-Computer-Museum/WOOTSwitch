@@ -1,3 +1,4 @@
 (sym_lib_table
+  (version 7)
   (lib (name "hootswitch")(type "KiCad")(uri "${KIPRJMOD}/WOOTSwitch.kicad_sym")(options "")(descr ""))
 )
